@@ -1,0 +1,121 @@
+import bpy
+from bpy.props import ( EnumProperty, BoolProperty, FloatProperty, StringProperty, EnumProperty, IntProperty )
+
+class ExportPropObject(bpy.types.PropertyGroup):
+
+    draw_index = IntProperty(
+        name="Draw order index",
+        default=1,
+        description="The draw index specifies what order the object will appear in the OBJ and JSON exports. This affects the order of drawing in the PBD engine as well"
+        )
+
+    json_set_hitbox = BoolProperty(
+        default=True,
+        name="Set as hitbox",
+        description="Only applies to widget exports. Set an object as a hitbox area for widget mouse detection. The bounding rectangle of all the objects will be used if all of them are unchecked (set to false)"
+        )
+
+    json_do_not_draw = BoolProperty(
+        default=False,
+        name="Do not draw",
+        description="Do not draw the object. This can still be used as a hitbox region however"
+        )
+
+class ExportPropScene(bpy.types.PropertyGroup):
+
+    character_array = bpy.props.StringProperty (
+        default = "",#bpy.context.user_preferences.addons["io_scene_json"].preferences.alphabet,
+        description = "The character array to be used when generating a font text curve"
+    )
+
+    label_prefix = bpy.props.StringProperty (
+      default = "f_",
+      description = "The prefix of the created text object labels.",
+    )
+
+    use_selection = BoolProperty(
+            name="Selection only",
+            description="Export selected objects only. Otherwise, the entire scene will be exported",
+            default=False,
+            )
+
+    use_draw_order = BoolProperty(
+            name="Obey draw order",
+            description="Use the draw order numbers to determine which object appear first in object file",
+            default=True
+            )
+
+    use_animation = BoolProperty(
+            name="Animation",
+            description="Write out an OBJ for each frame",
+            default=False,
+            )
+
+    display_conversion = BoolProperty(
+            description="Show the json file exporting options",
+            default=False,
+            )
+
+    convert_to_json = BoolProperty(
+            name="Output json file",
+            description="Write out a JSON file which conforms to the PBD standards when exporting",
+            default=False,
+            )
+
+    json_export_type = EnumProperty(items= (('0', 'Model', 'A standard 3d model'),
+                                                 ('1', 'Widget', 'An orthographic model'),
+                                                 ('2', 'Font', 'A font for use with PBD'),
+                                                 ),
+                                                 default = "0"
+                                             )
+    json_precision = IntProperty(
+        name="JSON data precision",
+        default=5,
+        description="This will round anything greator than the specified amount as significant digits to reduce the exported JSON file size when possible"
+        )
+
+    json_as_widget = BoolProperty(
+            name="Output as widget",
+            description="Export the data using a zero value for the depth to conform to pbd standard",
+            default=False,
+            )
+
+    json_input_path = StringProperty(
+            name="Input OBJ",
+            description="(Optional) Choose an OBJ file to use for exporting a JSON file instead. Having this set will not export an OBJ file (only a JSON file)",
+            default="",
+            options={'HIDDEN'},
+            maxlen=1024,
+            subtype='FILE_PATH'
+            )
+
+    json_output_path = StringProperty(
+            name="Destination",
+            description="(Required) Choose a directory to create the json file. This should be within the project html structure",
+            default="",
+            maxlen=1024,
+            subtype='DIR_PATH'
+            )
+
+    json_asset_root = StringProperty(
+            name="Server root",
+            description="(Optional) Choose the directory which serves as the base url for the network server. This is prepended to any asset urls created in the json file",
+            default="",
+            maxlen=1024,
+            subtype='DIR_PATH'
+            )
+
+def register():
+
+    bpy.utils.register_class(ExportPropObject)
+    bpy.utils.register_class(ExportPropScene)
+    bpy.types.Object.pbd_prop = bpy.props.PointerProperty(type=ExportPropObject)
+    bpy.types.Scene.pbd_prop = bpy.props.PointerProperty(type=ExportPropScene)
+
+
+def unregister():
+
+    bpy.utils.unregister_class(ExportPropObject)
+    bpy.utils.unregister_class(ExportPropScene)
+    del bpy.types.Object.pbd_prop
+    del bpy.types.Scene.pbd_prop
