@@ -97,12 +97,12 @@ class PBDPanel(bpy.types.Panel):
 
         col = box.column()
         col.separator()
-        col.operator("export.pbd_file", icon="EXPORT")
+        col.operator("export.pbd_file", text="Export", icon="EXPORT")
 
         box = layout.box()
         box.label("PBD OBJ Importing")
         col = box.column()
-        col.operator("import.pbd_obj_scene", icon="IMPORT")
+        col.operator("import.pbd_obj_scene", text="Import", icon="IMPORT")
 
 
 

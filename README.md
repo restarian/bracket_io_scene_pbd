@@ -19,3 +19,5 @@
 **Install this as you would any other blender addon. The addon is only verified for use with blender 2.79. This addon uses other works available within the source.**
 
 ##### Additional authors: Campbell Barton, Bastien Montagne
+
+![Screenshot]( https://raw.githubusercontent.com/restarian/restarian/master/bracket_io_scene_pbd/docs/image/bracket_io_scene_pbd_screenshot.)
