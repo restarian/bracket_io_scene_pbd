@@ -20,4 +20,4 @@
 
 ##### Additional authors: Campbell Barton, Bastien Montagne
 
-![Screenshot]( https://raw.githubusercontent.com/restarian/restarian/master/bracket_io_scene_pbd/docs/image/bracket_io_scene_pbd_screenshot.)
+![Screenshot](https://raw.githubusercontent.com/restarian/bracket_io_scene_pbd/master/docs/image/bracket_io_scene_pbd_screenshot.jpg)
