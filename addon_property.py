@@ -39,7 +39,7 @@ class ExportPropObject(bpy.types.PropertyGroup):
 class ExportPropScene(bpy.types.PropertyGroup):
 
     character_array = bpy.props.StringProperty (
-        default = "",#bpy.context.user_preferences.addons["io_scene_json"].preferences.alphabet,
+        default = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890-=!@#$%^&*()_+`~[]\\{}|;':\",./<>?",
         description = "The character array to be used when generating a font text curve"
     )
 
@@ -115,15 +115,6 @@ class ExportPropScene(bpy.types.PropertyGroup):
             default=True,
             )
 
-    json_input_path = StringProperty(
-            name="Input OBJ",
-            description="(Optional) Choose an OBJ file to use for exporting a JSON file instead. Having this set will not export an OBJ file (only a JSON file)",
-            default="",
-            options={'HIDDEN'},
-            maxlen=1024,
-            subtype='FILE_PATH'
-            )
-
     json_additional_option = StringProperty(
             name="Additional parameters",
             description="Any additional parameters to pass into the JSON exporting script",
@@ -147,6 +138,14 @@ class ExportPropScene(bpy.types.PropertyGroup):
             subtype='DIR_PATH'
             )
 
+    json_import_path = StringProperty(
+            name="Input OBJ file",
+            description="(Optional) A JSON file may be exported by using a input OBJ file instead of the scene objects",
+            default="",
+            maxlen=1024,
+            subtype='FILE_PATH'
+            )
+
 def register():
 
     bpy.utils.register_class(ExportPropObject)
@@ -155,7 +154,6 @@ def register():
     bpy.types.Object.pbd_prop = bpy.props.PointerProperty(type=ExportPropObject)
     bpy.types.Scene.pbd_prop = bpy.props.PointerProperty(type=ExportPropScene)
     bpy.types.Material.pbd_prop = bpy.props.PointerProperty(type=ExportPropMaterial)
-
 
 def unregister():
 

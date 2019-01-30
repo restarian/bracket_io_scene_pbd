@@ -118,7 +118,6 @@ class ExportFile(bpy.types.Operator, ExportHelper, IOOBJOrientationHelper):
 
     check_extension = True
     def execute(self, context):
-        from . import export_obj
 
         from mathutils import Matrix
         keywords = self.as_keywords(ignore=("axis_forward",
@@ -141,19 +140,16 @@ class ExportFile(bpy.types.Operator, ExportHelper, IOOBJOrientationHelper):
         keywords["global_matrix"] = global_matrix
 
         input_path = keywords["filepath"]
-        if context.scene.pbd_prop.json_input_path:
-            input_path = context.scene.pbd_prop.json_input_path
-        else:
-            export_obj.save(context, **keywords)
+        export_obj.save(context, **keywords)
 
         if context.scene.pbd_prop.convert_to_json:
 
-            export_json.save(self, context,
+            export_json.save(context,
                 export_type=context.scene.pbd_prop.json_export_type,
                 input_path=input_path,
                 output_path=context.scene.pbd_prop.json_output_path,
                 asset_root=context.scene.pbd_prop.json_asset_root,
-                script_path=context.user_preferences.addons["io_scene_json"].preferences.script_path,
+                script_path=context.user_preferences.addons["bracket_io_scene_pbd"].preferences.script_path,
                 precision=context.scene.pbd_prop.json_precision,
                 ignore_normals=context.scene.pbd_prop.json_ignore_normals,
                 include_meta=context.scene.pbd_prop.json_include_meta,
@@ -163,9 +159,39 @@ class ExportFile(bpy.types.Operator, ExportHelper, IOOBJOrientationHelper):
 
         return {"FINISHED"}
 
+class ExportJSON(bpy.types.Operator):
+    """Save a JSON File using the input OBJ file instead of the exported scene objectse"""
+
+    bl_idname = "export.json_from_obj"
+    bl_label = 'Export using existing OBJ'
+    #bl_options = {'PRESET'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.pbd_prop.json_import_path and not context.scene.pbd_prop.json_import_path.isspace()
+
+    def execute(self, context):
+
+        export_json.save(context,
+            export_type=context.scene.pbd_prop.json_export_type,
+            input_path=context.scene.pbd_prop.json_import_path,
+            output_path=context.scene.pbd_prop.json_output_path,
+            asset_root=context.scene.pbd_prop.json_asset_root,
+            script_path=context.user_preferences.addons["bracket_io_scene_pbd"].preferences.script_path,
+            precision=context.scene.pbd_prop.json_precision,
+            ignore_normals=context.scene.pbd_prop.json_ignore_normals,
+            include_meta=context.scene.pbd_prop.json_include_meta,
+            force_texture=context.scene.pbd_prop.json_force_texture,
+            addition_option=context.scene.pbd_prop.json_additional_option,
+       )
+
+        return {"FINISHED"}
+
 def register():
     bpy.utils.register_class(ExportFile)
+    bpy.utils.register_class(ExportJSON)
 
 
 def unregister():
     bpy.utils.unregister_class(ExportFile)
+    bpy.utils.unregister_class(ExportJSON)

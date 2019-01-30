@@ -28,7 +28,7 @@ def ShowMessageBox(message = "", title = "PBD JSON Exporting", icon = 'INFO'):
             self.layout.label(m)
     bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
 
-def save(self, context,
+def save(context,
          export_type="0",
          input_path="",
          output_path="",

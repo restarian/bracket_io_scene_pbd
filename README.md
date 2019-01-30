@@ -12,6 +12,7 @@
 [Bracket logo]: https://raw.githubusercontent.com/restarian/restarian/master/bracket/doc/image/bracket_logo_small.png
 
 ### A Blender addon to export data for use with the PBD engine.
+#### NOTE: the JSON exporter requires a third party script which must be licensed separately.
 
 ##### LICENSE: LGPLv3
 ##### Author: Robert Steckroth

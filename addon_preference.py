@@ -1,10 +1,11 @@
 import bpy
 
 class PBDAddonPreferences(bpy.types.AddonPreferences):
-    bl_idname = "io_scene_json"
+    bl_idname = "bracket_io_scene_pbd"
 
     script_path = bpy.props.StringProperty(
-        name="Path to the Batten Mesh cli script (convert.js)",
+        name="Batten mesh convert.js",
+        description="The file path to the Batten Mesh cli script (convert.js)",
         default="",
         options={'HIDDEN'},
         maxlen=1024,
@@ -12,7 +13,7 @@ class PBDAddonPreferences(bpy.types.AddonPreferences):
         )
 
     alphabet = bpy.props.StringProperty(
-        name="Alphabet to use",
+        name="Text creation alphabet",
         default = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890-=!@#$%^&*()_+`~[]\\{}|;':\",./<>?"
         )
 

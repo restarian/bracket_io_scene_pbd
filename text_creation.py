@@ -9,7 +9,7 @@ class ResetCharacter(bpy.types.Operator):
 
       #description = "All characters which are contained in the language. This is used for the reset button as well",
     def execute(self, context):
-        context.scene.pbd_prop.character_array = context.user_preferences.addons["io_scene_json"].preferences.alphabet
+        context.scene.pbd_prop.character_array = context.user_preferences.addons["bracket_io_scene_pbd"].preferences.alphabet
         return {'FINISHED'}
 
 class CreateTextCurve(bpy.types.Operator):

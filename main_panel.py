@@ -49,10 +49,9 @@ class PBDPanel(bpy.types.Panel):
         box.label("File Exporting")
         col = box.column()
 
-        if not context.scene.pbd_prop.json_input_path:
-            col.prop(context.scene.pbd_prop, "use_draw_order", text="Use draw order index")
-            col.prop(context.scene.pbd_prop, "use_selection")
-            col.prop(context.scene.pbd_prop, "use_animation")
+        col.prop(context.scene.pbd_prop, "use_draw_order", text="Use draw order index")
+        col.prop(context.scene.pbd_prop, "use_selection")
+        col.prop(context.scene.pbd_prop, "use_animation")
 
         col.prop(context.scene.pbd_prop, "display_conversion", text="JSON PBD Exporting",
             icon="TRIA_DOWN" if context.scene.pbd_prop.display_conversion else "TRIA_RIGHT",
@@ -83,24 +82,27 @@ class PBDPanel(bpy.types.Panel):
             col.active = context.scene.pbd_prop.convert_to_json
             col.prop(context.scene.pbd_prop, "json_additional_option")
 
-            #col.prop(context.scene.pbd_prop, "json_input_path", icon="IMPORT")
             col.separator()
             col.prop(context.scene.pbd_prop, "json_asset_root")
 
             col = box.column()
             col.active = context.scene.pbd_prop.convert_to_json
-
             col.prop(context.scene.pbd_prop, "json_output_path", icon="SAVE_COPY")
+
+
+        col.separator()
+        col.separator()
+        col.prop(context.scene.pbd_prop, "json_import_path", text="OBJ file:")
+        col.operator("export.json_from_obj", text="Export JSON from OBJ file", icon="EXPORT")
 
         col = box.column()
         col.separator()
-        col.operator("export.pbd_file", text="Export", icon="EXPORT")
+        col.operator("export.pbd_file", text="Export all", icon="EXPORT")
 
         box = layout.box()
-        box.label("PBD OBJ Importing")
+        box.label("Importing")
         col = box.column()
-        col.operator("import.pbd_obj_scene", text="Import", icon="IMPORT")
-
+        col.operator("import.pbd_obj_scene", text="Import OBJ", icon="IMPORT")
 
 
 def register():

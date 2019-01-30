@@ -1,10 +1,10 @@
 bl_info = {
-    "name": "PBD JSON and OBJ exporting tools",
+    "name": "PBD, JSON and OBJ inporting and exporting tools",
     "author": "Robert Steckroth, Campbell Barton, Bastien Montagne",
-    "version": (0, 1, 1),
+    "version": (0, 1, 2),
     "blender": (2, 79, 0),
     "location": "File > Import-Export",
-    "description": "Export OBJ files which conform to the PBD standards. Adds tools to aid in PBD widget creation.",
+    "description": "Exports and imports OBJ and JSON files which conform to the PBD standards. Provides tools which aid PBD model data",
     "warning": "",
     "support": "COMMUNITY",
     "category": "Import-Export"

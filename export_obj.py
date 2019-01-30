@@ -121,7 +121,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                     fw('illum 2\n')  # light normaly
 
                 fw('invis %d\n' % int(mat.pbd_prop.do_not_draw))
-                fw('mregion %d\n' % int(mat.pbd_prop.set_hitbox))
+                fw('mregion %d\n' % int(mat.pbd_prop.mouse_region))
 
             else:
                 # Write a dummy material here?
@@ -515,7 +515,7 @@ def write_file(filepath, objects, scene,
                                 fw('g %s\n' % obnamestring)
 
                             fw('invis %d\n' % int(ob.pbd_prop.do_not_draw))
-                            fw('mregion %d\n' % int(ob.pbd_prop.set_hitbox))
+                            fw('mregion %d\n' % int(ob.pbd_prop.mouse_region))
 
                         subprogress2.step()
 
