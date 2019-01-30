@@ -34,23 +34,39 @@ def save(self, context,
          output_path="",
          asset_root="",
          script_path=False,
-         precision=5
+         precision=5,
+         ignore_normals=True,
+         include_meta=True,
+         force_texture=True,
+         addition_option="",
          ):
 
     if not script_path:
         ShowMessageBox("The obj to json conversion script path is not set in the addon preferences", "Cannot export json", 'ERROR')
         return False
 
-    param = ["node", script_path, "-t", str(precision), "-CamvDP", "-i", input_path]
+    param = ["node", script_path, "-t", str(precision), "-CavP", "-i", input_path, "-o", output_path]
+
+    if ignore_normals:
+        param.append("-z")
+
+    if force_texture:
+        param.append("-f")
+
+    if include_meta:
+        param.append("-m")
 
     if export_type is "1":
         param.append("--shift-origin")
         param.append("0,span,0")
-    if export_type is "2":
+    elif export_type is "2":
         param.append("--set-origin")
         param.append("0,null,0")
         param.append("--shift-origin")
         param.append("null,span,0")
+
+    if addition_option:
+        param += addition_option.split()
 
     popenobj = subprocess.Popen(param, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     err = ""

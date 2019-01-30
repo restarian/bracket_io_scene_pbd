@@ -155,6 +155,10 @@ class ExportFile(bpy.types.Operator, ExportHelper, IOOBJOrientationHelper):
                 asset_root=context.scene.pbd_prop.json_asset_root,
                 script_path=context.user_preferences.addons["io_scene_json"].preferences.script_path,
                 precision=context.scene.pbd_prop.json_precision,
+                ignore_normals=context.scene.pbd_prop.json_ignore_normals,
+                include_meta=context.scene.pbd_prop.json_include_meta,
+                force_texture=context.scene.pbd_prop.json_force_texture,
+                addition_option=context.scene.pbd_prop.json_additional_option,
            )
 
         return {"FINISHED"}

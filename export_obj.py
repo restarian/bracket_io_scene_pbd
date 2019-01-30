@@ -120,14 +120,20 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                 else:
                     fw('illum 2\n')  # light normaly
 
+                fw('invis %d\n' % int(mat.pbd_prop.do_not_draw))
+                fw('mregion %d\n' % int(mat.pbd_prop.set_hitbox))
+
             else:
                 # Write a dummy material here?
                 fw('Ns 0\n')
                 fw('Ka %.6f %.6f %.6f\n' % world_amb[:])  # Ambient, uses mirror color,
                 fw('Kd 0.8 0.8 0.8\n')
                 fw('Ks 0.8 0.8 0.8\n')
-                fw('d 1\n')  # No alpha
+                fw('d 1.0\n')  # No alpha
                 fw('illum 2\n')  # light normaly
+                fw('invis 1\n')
+                fw('mregion 1\n')
+
 
             # Write images!
             if face_img:  # We have an image on the face!
@@ -507,6 +513,9 @@ def write_file(filepath, objects, scene,
                                 fw('o %s\n' % obnamestring)  # Write Object name
                             else:  # if EXPORT_GROUP_BY_OB:
                                 fw('g %s\n' % obnamestring)
+
+                            fw('invis %d\n' % int(ob.pbd_prop.do_not_draw))
+                            fw('mregion %d\n' % int(ob.pbd_prop.set_hitbox))
 
                         subprogress2.step()
 

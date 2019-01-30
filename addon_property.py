@@ -1,6 +1,21 @@
 import bpy
 from bpy.props import ( EnumProperty, BoolProperty, FloatProperty, StringProperty, EnumProperty, IntProperty )
 
+class ExportPropMaterial(bpy.types.PropertyGroup):
+
+    set_hitbox = BoolProperty(
+        default=True,
+        name="Set as hitbox",
+        description="Only applies to widget exports. Set a material as a hitbox area for widget mouse detection. This will not override object properties"
+        )
+
+    do_not_draw = BoolProperty(
+        default=False,
+        name="Do not draw",
+        description="Do not draw the material. This can still be used as a hitbox region however"
+        )
+
+
 class ExportPropObject(bpy.types.PropertyGroup):
 
     draw_index = IntProperty(
@@ -9,13 +24,13 @@ class ExportPropObject(bpy.types.PropertyGroup):
         description="The draw index specifies what order the object will appear in the OBJ and JSON exports. This affects the order of drawing in the PBD engine as well"
         )
 
-    json_set_hitbox = BoolProperty(
+    set_hitbox = BoolProperty(
         default=True,
         name="Set as hitbox",
         description="Only applies to widget exports. Set an object as a hitbox area for widget mouse detection. The bounding rectangle of all the objects will be used if all of them are unchecked (set to false)"
         )
 
-    json_do_not_draw = BoolProperty(
+    do_not_draw = BoolProperty(
         default=False,
         name="Do not draw",
         description="Do not draw the object. This can still be used as a hitbox region however"
@@ -71,6 +86,8 @@ class ExportPropScene(bpy.types.PropertyGroup):
     json_precision = IntProperty(
         name="JSON data precision",
         default=5,
+        min=1,
+        max=16,
         description="This will round anything greator than the specified amount as significant digits to reduce the exported JSON file size when possible"
         )
 
@@ -80,6 +97,24 @@ class ExportPropScene(bpy.types.PropertyGroup):
             default=False,
             )
 
+    json_ignore_normals = BoolProperty(
+            name="Skip lighting normals",
+            description="Do not include lighting normals in the exported JSON file",
+            default=True,
+            )
+
+    json_include_meta = BoolProperty(
+            name="Create meta",
+            description="Create model meta data in the json file",
+            default=True,
+            )
+
+    json_force_texture = BoolProperty(
+            name="Overwrite textures",
+            description="Overwrite all textures copied to the destination with the JSON file. Otherwise, textures are only copied if one with the same name is not in the destination already",
+            default=True,
+            )
+
     json_input_path = StringProperty(
             name="Input OBJ",
             description="(Optional) Choose an OBJ file to use for exporting a JSON file instead. Having this set will not export an OBJ file (only a JSON file)",
@@ -87,6 +122,13 @@ class ExportPropScene(bpy.types.PropertyGroup):
             options={'HIDDEN'},
             maxlen=1024,
             subtype='FILE_PATH'
+            )
+
+    json_additional_option = StringProperty(
+            name="Additional parameters",
+            description="Any additional parameters to pass into the JSON exporting script",
+            default="",
+            maxlen=256
             )
 
     json_output_path = StringProperty(
@@ -109,13 +151,17 @@ def register():
 
     bpy.utils.register_class(ExportPropObject)
     bpy.utils.register_class(ExportPropScene)
+    bpy.utils.register_class(ExportPropMaterial)
     bpy.types.Object.pbd_prop = bpy.props.PointerProperty(type=ExportPropObject)
     bpy.types.Scene.pbd_prop = bpy.props.PointerProperty(type=ExportPropScene)
+    bpy.types.Material.pbd_prop = bpy.props.PointerProperty(type=ExportPropMaterial)
 
 
 def unregister():
 
+    bpy.utils.unregister_class(ExportPropMaterial)
     bpy.utils.unregister_class(ExportPropObject)
     bpy.utils.unregister_class(ExportPropScene)
+    del bpy.types.Material.pbd_prop
     del bpy.types.Object.pbd_prop
     del bpy.types.Scene.pbd_prop

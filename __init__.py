@@ -1,16 +1,16 @@
 bl_info = {
     "name": "PBD JSON and OBJ exporting tools",
     "author": "Robert Steckroth, Campbell Barton, Bastien Montagne",
-    "version": (0, 1, 0),
+    "version": (0, 1, 1),
     "blender": (2, 79, 0),
     "location": "File > Import-Export",
     "description": "Export OBJ files which conform to the PBD standards. Adds tools to aid in PBD widget creation.",
     "warning": "",
-    "support": 'OFFICIAL',
+    "support": "COMMUNITY",
     "category": "Import-Export"
 }
 
-modulesNames = ["addon_preference", "main_panel", "addon_property", "text_creation", "object_creation", "file_export" ]
+modulesNames = ["addon_preference", "main_panel", "addon_property", "text_creation", "object_creation", "file_export", "file_import" ]
 
 import sys
 import importlib
