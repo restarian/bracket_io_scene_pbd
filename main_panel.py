@@ -34,16 +34,16 @@ class PBDPanel(bpy.types.Panel):
             col = box.column()
             col.prop(context.active_object.pbd_prop, "draw_index")
             row = box.row()
-            row.prop(context.active_object.pbd_prop, "do_not_draw")
-            row.prop(context.active_object.pbd_prop, "set_hitbox")
+            row.prop(context.active_object.pbd_prop, "do_not_draw", text="Do not draw")
+            row.prop(context.active_object.pbd_prop, "mouse_region", text="Mouse detection")
 
 
         if context.active_object is not None and context.active_object.active_material is not None:
             box = layout.box()
             box.label("Material Properties")
             row = box.row()
-            row.prop(context.active_object.active_material.pbd_prop, "do_not_draw")
-            row.prop(context.active_object.active_material.pbd_prop, "set_hitbox")
+            row.prop(context.active_object.active_material.pbd_prop, "do_not_draw", text="Do not draw")
+            row.prop(context.active_object.active_material.pbd_prop, "mouse_region", text="Mouse detection")
 
         box = layout.box()
         box.label("File Exporting")
@@ -64,6 +64,10 @@ class PBDPanel(bpy.types.Panel):
             col.prop(context.scene.pbd_prop, "convert_to_json", text="Export a JSON file")
             col.separator()
 
+
+            row = box.row()
+            row.active = context.scene.pbd_prop.convert_to_json
+            row.prop(context.scene.pbd_prop, "json_export_type", expand=True, emboss=True)
             row = box.row()
             row.active = context.scene.pbd_prop.convert_to_json
             row.prop(context.scene.pbd_prop, "json_ignore_normals", text="Ignore normals")
@@ -82,18 +86,11 @@ class PBDPanel(bpy.types.Panel):
             #col.prop(context.scene.pbd_prop, "json_input_path", icon="IMPORT")
             col.separator()
             col.prop(context.scene.pbd_prop, "json_asset_root")
-            row = box.row()
-            row.active = context.scene.pbd_prop.convert_to_json
-            row.prop(context.scene.pbd_prop, "json_export_type", expand=True, emboss=True)
-            cola = box.column()
 
-            if not context.scene.pbd_prop.convert_to_json:
-                cola.active = False
-            #elif context.scene.pbd_prop.json_export_type is not "1":
-                #cola.active = False
+            col = box.column()
+            col.active = context.scene.pbd_prop.convert_to_json
 
-            #if True and context.scene.pbd_prop.json_export_type is "widget" and context.active_object is not None and context.active_object.type == "MESH":
-            cola.prop(context.scene.pbd_prop, "json_output_path", icon="SAVE_COPY")
+            col.prop(context.scene.pbd_prop, "json_output_path", icon="SAVE_COPY")
 
         col = box.column()
         col.separator()

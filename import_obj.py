@@ -428,7 +428,7 @@ def create_materials(filepath, relpath,
                     elif line_id == b'invis':
                         context_material.pbd_prop.do_not_draw = bool(float_func(line_split[1]))
                     elif line_id == b'mregion':
-                        context_material.pbd_prop.set_hitbox = bool(float_func(line_split[1]))
+                        context_material.pbd_prop.mouse_region = bool(float_func(line_split[1]))
                     elif line_id == b'illum':
                         illum = int(line_split[1])
 
@@ -607,6 +607,7 @@ def create_mesh(new_objects,
                 unique_materials,
                 unique_material_images,
                 unique_smooth_groups,
+                custom_property,
                 vertex_groups,
                 dataname,
                 ):
@@ -847,6 +848,8 @@ def create_mesh(new_objects,
         me.show_edge_sharp = True
 
     ob = bpy.data.objects.new(me.name, me)
+    ob.pbd_prop.mouse_region = bool(int(custom_property[dataname]["mouse_region"]))
+    ob.pbd_prop.do_not_draw = bool(int(custom_property[dataname]["do_not_draw"]))
     new_objects.append(ob)
 
     # Create the vertex groups. No need to have the flag passed here since we test for the
@@ -1042,6 +1045,7 @@ def load(context,
         unique_materials = {}
         unique_material_images = {}
         unique_smooth_groups = {}
+        custom_property = {}
         # unique_obects= {} - no use for this variable since the objects are stored in the face.
 
         # when there are faces that end with \
@@ -1183,6 +1187,22 @@ def load(context,
                         context_object = line_value(line_split)
                         # unique_obects[context_object]= None
 
+                elif line_start == b'invis':
+                    if use_split_objects:
+                        if context_object:
+                            o_name = context_object.decode("UTF-8")
+                            if not o_name in custom_property:
+                                custom_property[o_name] = {}
+                            custom_property[o_name]["do_not_draw"] = line_value(line_split)
+
+                elif line_start == b'mregion':
+                    if use_split_objects:
+                        if context_object:
+                            o_name = context_object.decode("UTF-8")
+                            if not o_name in custom_property:
+                                custom_property[o_name] = {}
+                            custom_property[o_name]["mouse_region"] = line_value(line_split)
+
                 elif line_start == b'g':
                     if use_split_groups:
                         context_object = line_value(line.split())
@@ -1290,6 +1310,7 @@ def load(context,
                         unique_materials_split,
                         unique_material_images,
                         unique_smooth_groups,
+                        custom_property,
                         vertex_groups,
                         dataname,
                         )

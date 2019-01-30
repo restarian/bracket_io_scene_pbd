@@ -3,7 +3,7 @@ from bpy.props import ( EnumProperty, BoolProperty, FloatProperty, StringPropert
 
 class ExportPropMaterial(bpy.types.PropertyGroup):
 
-    set_hitbox = BoolProperty(
+    mouse_region = BoolProperty(
         default=True,
         name="Set as hitbox",
         description="Only applies to widget exports. Set a material as a hitbox area for widget mouse detection. This will not override object properties"
@@ -24,7 +24,7 @@ class ExportPropObject(bpy.types.PropertyGroup):
         description="The draw index specifies what order the object will appear in the OBJ and JSON exports. This affects the order of drawing in the PBD engine as well"
         )
 
-    set_hitbox = BoolProperty(
+    mouse_region = BoolProperty(
         default=True,
         name="Set as hitbox",
         description="Only applies to widget exports. Set an object as a hitbox area for widget mouse detection. The bounding rectangle of all the objects will be used if all of them are unchecked (set to false)"
