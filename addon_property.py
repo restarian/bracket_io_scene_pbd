@@ -5,16 +5,22 @@ class ExportPropMaterial(bpy.types.PropertyGroup):
 
     mouse_region = BoolProperty(
         default=True,
-        name="Set as hitbox",
         description="Only applies to widget exports. Set a material as a hitbox area for widget mouse detection. This will not override object properties"
         )
 
-    do_not_draw = BoolProperty(
-        default=False,
-        name="Do not draw",
-        description="Do not draw the material. This can still be used as a hitbox region however"
+    display = BoolProperty(
+        default=True,
+        description="Draw the material when rendering in the pbd engine. this can still be used as a mouse detection region however"
         )
 
+    cull_face = EnumProperty(items= (('back', 'Cull Back Faces', 'Cull all back facing polygons'),
+                                     ('front', 'Cull Front Faces', 'Cull all fron facing polygons'),
+                                     ('back_font', 'Cull All Faces', 'Cull both front and back polygons'),
+                                     ('none', 'Do not cull', 'Disable polygon culling'),
+                                 ),
+                                 name="Polygon culling",
+                                 default = "back"
+                             )
 
 class ExportPropObject(bpy.types.PropertyGroup):
 
@@ -26,14 +32,22 @@ class ExportPropObject(bpy.types.PropertyGroup):
 
     mouse_region = BoolProperty(
         default=True,
-        name="Set as hitbox",
         description="Only applies to widget exports. Set an object as a hitbox area for widget mouse detection. The bounding rectangle of all the objects will be used if all of them are unchecked (set to false)"
         )
 
-    do_not_draw = BoolProperty(
-        default=False,
-        name="Do not draw",
-        description="Do not draw the object. This can still be used as a hitbox region however"
+    cull_face = EnumProperty(items= (('back', 'Cull Back Faces', 'Cull all back facing polygons'),
+                                     ('front', 'Cull Front Faces', 'Cull all fron facing polygons'),
+                                     ('back_font', 'Cull All Faces', 'Cull both front and back polygons'),
+                                     ('none', 'Do not cull', 'Disable polygon culling'),
+                                 ),
+                                 name="Polygon culling",
+                                 default = "back"
+                             )
+
+    display = BoolProperty(
+        default=True,
+        name="Display",
+        description="Draw the material when rendering in the PBD engine. This can still be used as a mouse detection region however"
         )
 
 class ExportPropScene(bpy.types.PropertyGroup):
@@ -77,11 +91,11 @@ class ExportPropScene(bpy.types.PropertyGroup):
             default=False,
             )
 
-    json_export_type = EnumProperty(items= (('0', 'Model', 'A standard 3d model'),
-                                                 ('1', 'Widget', 'An orthographic model'),
-                                                 ('2', 'Font', 'A font for use with PBD'),
+    json_export_type = EnumProperty(items= (('model', 'Model', 'A standard 3d model'),
+                                                 ('widget', 'Widget', 'An orthographic model'),
+                                                 ('font', 'Font', 'A font for use with PBD'),
                                                  ),
-                                                 default = "0"
+                                                 default = "model"
                                              )
     json_precision = IntProperty(
         name="JSON data precision",
@@ -138,9 +152,17 @@ class ExportPropScene(bpy.types.PropertyGroup):
             subtype='DIR_PATH'
             )
 
+    json_texture_subdir = StringProperty(
+            name="Texture sub-directory",
+            description="(Optional) A relative path to the JSON destination path which will store all of the textures used within the JSON export. Note: Textures are copied from the input specified in the OBJ data to the destination (not moved)",
+            default="Textures",
+            maxlen=1024,
+            subtype='DIR_PATH'
+            )
+
     json_import_path = StringProperty(
             name="Input OBJ file",
-            description="(Optional) A JSON file may be exported by using a input OBJ file instead of the scene objects",
+            description="(Optional) A JSON file may be exported using an input OBJ file instead of the OBJ file exported from the scene",
             default="",
             maxlen=1024,
             subtype='FILE_PATH'

@@ -29,11 +29,12 @@ def ShowMessageBox(message = "", title = "PBD JSON Exporting", icon = 'INFO'):
     bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
 
 def save(context,
-         export_type="0",
+         export_type="model",
          input_path="",
          output_path="",
          asset_root="",
-         script_path=False,
+         texture_subdir="",
+         script_path="",
          precision=5,
          ignore_normals=True,
          include_meta=True,
@@ -56,18 +57,27 @@ def save(context,
     if include_meta:
         param.append("-m")
 
-    if export_type is "1":
+    if export_type == "widget":
         param.append("--shift-origin")
         param.append("0,span,0")
-    elif export_type is "2":
+    elif export_type == "font":
         param.append("--set-origin")
         param.append("0,null,0")
         param.append("--shift-origin")
         param.append("null,span,0")
 
+    if asset_root:
+        param.append("--asset-root")
+        param.append(asset_root)
+
+    if texture_subdir:
+        param.append("--texture-path")
+        param.append(texture_subdir)
+
     if addition_option:
         param += addition_option.split()
 
+    print(param)
     popenobj = subprocess.Popen(param, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     err = ""
     out = ""

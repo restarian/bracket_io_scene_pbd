@@ -177,6 +177,7 @@ class ExportJSON(bpy.types.Operator):
             input_path=context.scene.pbd_prop.json_import_path,
             output_path=context.scene.pbd_prop.json_output_path,
             asset_root=context.scene.pbd_prop.json_asset_root,
+            texture_subdir=context.scene.pbd_prop.json_texture_subdir,
             script_path=context.user_preferences.addons["bracket_io_scene_pbd"].preferences.script_path,
             precision=context.scene.pbd_prop.json_precision,
             ignore_normals=context.scene.pbd_prop.json_ignore_normals,

@@ -31,10 +31,11 @@ class PBDPanel(bpy.types.Panel):
         if context.active_object is not None and context.active_object.type == "MESH":
             box = layout.box()
             box.label("Object Properties")
-            col = box.column()
-            col.prop(context.active_object.pbd_prop, "draw_index")
             row = box.row()
-            row.prop(context.active_object.pbd_prop, "do_not_draw", text="Do not draw")
+            row.prop(context.active_object.pbd_prop, "cull_face", text="")
+            row.prop(context.active_object.pbd_prop, "draw_index")
+            row = box.row()
+            row.prop(context.active_object.pbd_prop, "display", text="Display")
             row.prop(context.active_object.pbd_prop, "mouse_region", text="Mouse detection")
 
 
@@ -42,7 +43,10 @@ class PBDPanel(bpy.types.Panel):
             box = layout.box()
             box.label("Material Properties")
             row = box.row()
-            row.prop(context.active_object.active_material.pbd_prop, "do_not_draw", text="Do not draw")
+            split = box.split(percentage=0.48)
+            split.prop(context.active_object.active_material.pbd_prop, "cull_face", text="")
+            row = box.row()
+            row.prop(context.active_object.active_material.pbd_prop, "display", text="Display")
             row.prop(context.active_object.active_material.pbd_prop, "mouse_region", text="Mouse detection")
 
         box = layout.box()
@@ -80,15 +84,13 @@ class PBDPanel(bpy.types.Panel):
 
             col = box.column()
             col.active = context.scene.pbd_prop.convert_to_json
-            col.prop(context.scene.pbd_prop, "json_additional_option")
+
+            col.prop(context.scene.pbd_prop, "json_asset_root", text="Assest server root")
+            col.prop(context.scene.pbd_prop, "json_texture_subdir", text="Textures sub-directory")
+            col.prop(context.scene.pbd_prop, "json_output_path", icon="SAVE_COPY", text='JSON destination directory')
 
             col.separator()
-            col.prop(context.scene.pbd_prop, "json_asset_root")
-
-            col = box.column()
-            col.active = context.scene.pbd_prop.convert_to_json
-            col.prop(context.scene.pbd_prop, "json_output_path", icon="SAVE_COPY")
-
+            col.prop(context.scene.pbd_prop, "json_additional_option")
 
         col.separator()
         col.separator()

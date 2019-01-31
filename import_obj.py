@@ -426,9 +426,11 @@ def create_materials(filepath, relpath,
                         # rgb, filter color, blender has no support for this.
                         pass
                     elif line_id == b'invis':
-                        context_material.pbd_prop.do_not_draw = bool(float_func(line_split[1]))
+                        context_material.pbd_prop.display = bool(float_func(line_split[1]))
                     elif line_id == b'mregion':
                         context_material.pbd_prop.mouse_region = bool(float_func(line_split[1]))
+                    elif line_id == b'cull':
+                        context_material.pbd_prop.cull_face = str(line_split[1].decode("UTF-8"))
                     elif line_id == b'illum':
                         illum = int(line_split[1])
 
@@ -849,7 +851,8 @@ def create_mesh(new_objects,
 
     ob = bpy.data.objects.new(me.name, me)
     ob.pbd_prop.mouse_region = bool(int(custom_property[dataname]["mouse_region"]))
-    ob.pbd_prop.do_not_draw = bool(int(custom_property[dataname]["do_not_draw"]))
+    ob.pbd_prop.display = bool(int(custom_property[dataname]["display"]))
+    ob.pbd_prop.cull_face = custom_property[dataname]["cull"].decode("UTF-8")
     new_objects.append(ob)
 
     # Create the vertex groups. No need to have the flag passed here since we test for the
@@ -1193,7 +1196,7 @@ def load(context,
                             o_name = context_object.decode("UTF-8")
                             if not o_name in custom_property:
                                 custom_property[o_name] = {}
-                            custom_property[o_name]["do_not_draw"] = line_value(line_split)
+                            custom_property[o_name]["display"] = line_value(line_split)
 
                 elif line_start == b'mregion':
                     if use_split_objects:
@@ -1202,6 +1205,14 @@ def load(context,
                             if not o_name in custom_property:
                                 custom_property[o_name] = {}
                             custom_property[o_name]["mouse_region"] = line_value(line_split)
+
+                elif line_start == b'cull':
+                    if use_split_objects:
+                        if context_object:
+                            o_name = context_object.decode("UTF-8")
+                            if not o_name in custom_property:
+                                custom_property[o_name] = {}
+                            custom_property[o_name]["cull"] = line_value(line_split)
 
                 elif line_start == b'g':
                     if use_split_groups:
