@@ -3,24 +3,26 @@ from bpy.props import ( EnumProperty, BoolProperty, FloatProperty, StringPropert
 
 class ExportPropMaterial(bpy.types.PropertyGroup):
 
-    mouse_region = BoolProperty(
-        default=True,
-        description="Only applies to widget exports. Set a material as a hitbox area for widget mouse detection. This will not override object properties"
-        )
-
     display = BoolProperty(
         default=True,
-        description="Draw the material when rendering in the pbd engine. this can still be used as a mouse detection region however"
+        description="Draw the material when rendering in the PBD engine. this can still be used as a collision detection region however"
         )
 
-    cull_face = EnumProperty(items= (('back', 'Cull Back Faces', 'Cull all back facing polygons'),
+    collision = BoolProperty(
+        default=True,
+        description="Use collision detection when other objects are moving around"
+        )
+
+    cull_face = EnumProperty(items= (('unused', 'Unused', 'Use the same value as the object cull value'),
+                                     ('back', 'Cull Back Faces', 'Cull all back facing polygons'),
                                      ('front', 'Cull Front Faces', 'Cull all fron facing polygons'),
                                      ('back_font', 'Cull All Faces', 'Cull both front and back polygons'),
                                      ('none', 'Do not cull', 'Disable polygon culling'),
                                  ),
-                                 name="Polygon culling",
-                                 default = "back"
+                                 name="Material polygon culling",
+                                 default = "unused"
                              )
+
 
 class ExportPropObject(bpy.types.PropertyGroup):
 
@@ -30,9 +32,15 @@ class ExportPropObject(bpy.types.PropertyGroup):
         description="The draw index specifies what order the object will appear in the OBJ and JSON exports. This affects the order of drawing in the PBD engine as well"
         )
 
-    mouse_region = BoolProperty(
+    display = BoolProperty(
         default=True,
-        description="Only applies to widget exports. Set an object as a hitbox area for widget mouse detection. The bounding rectangle of all the objects will be used if all of them are unchecked (set to false)"
+        name="Display",
+        description="Draw the object when rendering in the PBD engine. This can still be used as a collision detection object however"
+        )
+
+    collision = BoolProperty(
+        default=True,
+        description="Set an object as a collision detection area. This also applies to the mouse over area when exporting widget type models. The bounding rectangle of all the objects will be used if all of them are unchecked (set to false)"
         )
 
     cull_face = EnumProperty(items= (('back', 'Cull Back Faces', 'Cull all back facing polygons'),
@@ -40,15 +48,9 @@ class ExportPropObject(bpy.types.PropertyGroup):
                                      ('back_font', 'Cull All Faces', 'Cull both front and back polygons'),
                                      ('none', 'Do not cull', 'Disable polygon culling'),
                                  ),
-                                 name="Polygon culling",
+                                 name="Object polygon culling",
                                  default = "back"
                              )
-
-    display = BoolProperty(
-        default=True,
-        name="Display",
-        description="Draw the material when rendering in the PBD engine. This can still be used as a mouse detection region however"
-        )
 
 class ExportPropScene(bpy.types.PropertyGroup):
 
@@ -93,7 +95,8 @@ class ExportPropScene(bpy.types.PropertyGroup):
 
     json_export_type = EnumProperty(items= (('model', 'Model', 'A standard 3d model'),
                                                  ('widget', 'Widget', 'An orthographic model'),
-                                                 ('font', 'Font', 'A font for use with PBD'),
+                                                 ('font', 'Font', 'A font model'),
+                                                 ('terrain', 'Terrain', 'A terrain model'),
                                                  ),
                                                  default = "model"
                                              )

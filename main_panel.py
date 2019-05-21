@@ -36,7 +36,7 @@ class PBDPanel(bpy.types.Panel):
             row.prop(context.active_object.pbd_prop, "draw_index")
             row = box.row()
             row.prop(context.active_object.pbd_prop, "display", text="Display")
-            row.prop(context.active_object.pbd_prop, "mouse_region", text="Mouse detection")
+            row.prop(context.active_object.pbd_prop, "collision", text="Enable collision")
 
 
         if context.active_object is not None and context.active_object.active_material is not None:
@@ -47,7 +47,7 @@ class PBDPanel(bpy.types.Panel):
             split.prop(context.active_object.active_material.pbd_prop, "cull_face", text="")
             row = box.row()
             row.prop(context.active_object.active_material.pbd_prop, "display", text="Display")
-            row.prop(context.active_object.active_material.pbd_prop, "mouse_region", text="Mouse detection")
+            row.prop(context.active_object.active_material.pbd_prop, "collision", text="Enable collision")
 
         box = layout.box()
         box.label("File Exporting")

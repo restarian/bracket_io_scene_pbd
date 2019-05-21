@@ -20,6 +20,7 @@
 
 import bpy
 import subprocess
+import re
 
 def ShowMessageBox(message = "", title = "PBD JSON Exporting", icon = 'INFO'):
     message = str(message).replace("\\t", "   ").replace("\t", "   ").replace("\\n", "\n")
@@ -95,8 +96,10 @@ def save(context,
         else:
             break
 
-    if not err.isspace():
-        ShowMessageBox(err+"\n"+out, "Unable to run obj to json script", "ERROR")
+    popenobj.communicate()
+    err += "\n"
+    if not err.isspace() or popenobj.returncode:
+        ShowMessageBox(re.sub(r'([\r\n]+.?)+', r'\n', err)+out, "Batten mesh error output", "ERROR")
         return False
 
     ShowMessageBox(out, "Batten mesh output", "INFO")

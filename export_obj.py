@@ -121,7 +121,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                     fw('illum 2\n')  # light normaly
 
                 fw('invis %d\n' % int(mat.pbd_prop.display))
-                fw('mregion %d\n' % int(mat.pbd_prop.mouse_region))
+                fw('collision %d\n' % int(mat.pbd_prop.collision))
                 fw('cull %s\n' % str(mat.pbd_prop.cull_face))
 
             else:
@@ -133,8 +133,8 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                 fw('d 1.0\n')  # No alpha
                 fw('illum 2\n')  # light normaly
                 fw('invis 1\n')
-                fw('mregion 1\n')
-                fw('cull none\n')
+                fw('collision 0\n')
+                fw('cull unused\n')
 
 
             # Write images!
@@ -517,7 +517,7 @@ def write_file(filepath, objects, scene,
                                 fw('g %s\n' % obnamestring)
 
                             fw('invis %d\n' % int(ob.pbd_prop.display))
-                            fw('mregion %d\n' % int(ob.pbd_prop.mouse_region))
+                            fw('collision %d\n' % int(ob.pbd_prop.collision))
                             fw('cull %s\n' % str(ob.pbd_prop.cull_face))
 
                         subprogress2.step()

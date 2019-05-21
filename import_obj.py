@@ -427,8 +427,8 @@ def create_materials(filepath, relpath,
                         pass
                     elif line_id == b'invis':
                         context_material.pbd_prop.display = bool(float_func(line_split[1]))
-                    elif line_id == b'mregion':
-                        context_material.pbd_prop.mouse_region = bool(float_func(line_split[1]))
+                    elif line_id == b'collision':
+                        context_material.pbd_prop.collision = bool(float_func(line_split[1]))
                     elif line_id == b'cull':
                         context_material.pbd_prop.cull_face = str(line_split[1].decode("UTF-8"))
                     elif line_id == b'illum':
@@ -850,8 +850,8 @@ def create_mesh(new_objects,
         me.show_edge_sharp = True
 
     ob = bpy.data.objects.new(me.name, me)
-    ob.pbd_prop.mouse_region = bool(int(custom_property[dataname]["mouse_region"]))
     ob.pbd_prop.display = bool(int(custom_property[dataname]["display"]))
+    ob.pbd_prop.collision = bool(int(custom_property[dataname]["collision"]))
     ob.pbd_prop.cull_face = custom_property[dataname]["cull"].decode("UTF-8")
     new_objects.append(ob)
 
@@ -1198,13 +1198,13 @@ def load(context,
                                 custom_property[o_name] = {}
                             custom_property[o_name]["display"] = line_value(line_split)
 
-                elif line_start == b'mregion':
+                elif line_start == b'collision':
                     if use_split_objects:
                         if context_object:
                             o_name = context_object.decode("UTF-8")
                             if not o_name in custom_property:
                                 custom_property[o_name] = {}
-                            custom_property[o_name]["mouse_region"] = line_value(line_split)
+                            custom_property[o_name]["collision"] = line_value(line_split)
 
                 elif line_start == b'cull':
                     if use_split_objects:
