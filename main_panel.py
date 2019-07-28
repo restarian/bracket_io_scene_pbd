@@ -47,7 +47,6 @@ class PBDPanel(bpy.types.Panel):
             split.prop(context.active_object.active_material.pbd_prop, "cull_face", text="")
             row = box.row()
             row.prop(context.active_object.active_material.pbd_prop, "display", text="Display")
-            row.prop(context.active_object.active_material.pbd_prop, "mouse_region", text="Mouse detection")
 
         box = layout.box()
         box.label("File Exporting")
@@ -66,7 +65,6 @@ class PBDPanel(bpy.types.Panel):
             col = box.column()
             col.prop(context.scene.pbd_prop, "convert_to_json", text="Export a JSON file")
             col.separator()
-
 
             row = box.row()
             row.active = context.scene.pbd_prop.convert_to_json
@@ -92,14 +90,17 @@ class PBDPanel(bpy.types.Panel):
             col.separator()
             col.prop(context.scene.pbd_prop, "json_additional_option")
 
-        col.separator()
-        col.separator()
-        col.prop(context.scene.pbd_prop, "json_import_path", text="OBJ file:")
-        col.operator("export.json_from_obj", text="Export JSON from OBJ file", icon="EXPORT")
 
+        col.separator()
         col = box.column()
         col.separator()
-        col.operator("export.pbd_file", text="Export all", icon="EXPORT")
+        col.operator("export.pbd_file", text="-- EXPORT --", icon="EXPORT")
+
+        col.separator()
+        col.separator()
+        row = box.row()
+        row.operator("export.json_from_obj", text="Export PBD(js) from OBJ", icon="EXPORT")
+        row.prop(context.scene.pbd_prop, "json_import_path", text=".obj")
 
         box = layout.box()
         box.label("Importing")

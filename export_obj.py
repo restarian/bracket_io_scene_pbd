@@ -121,7 +121,6 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                     fw('illum 2\n')  # light normaly
 
                 fw('invis %d\n' % int(mat.pbd_prop.display))
-                fw('mregion %d\n' % int(mat.pbd_prop.mouse_region))
                 fw('cull %s\n' % str(mat.pbd_prop.cull_face))
 
             else:

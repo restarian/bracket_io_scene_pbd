@@ -160,7 +160,7 @@ class ExportFile(bpy.types.Operator, ExportHelper, IOOBJOrientationHelper):
         return {"FINISHED"}
 
 class ExportJSON(bpy.types.Operator):
-    """Save a JSON File using the input OBJ file instead of the exported scene objectse"""
+    """Save a JSON File using the input OBJ file instead of the exported scene objects"""
 
     bl_idname = "export.json_from_obj"
     bl_label = 'Export using existing OBJ'
