@@ -20,13 +20,11 @@ class PBDPanel(bpy.types.Panel):
         row = box.row()
         row.operator("scene.pbd_create_text_curve", text="Create text curve")
 
-
         box = layout.box()
         box.label("Font Object Creation")
         col = box.column()
         col.prop(context.scene.pbd_prop, "label_prefix", text="Name prefix")
         col.operator("curve.pbd_create_object", text="Convert font to objects")
-
 
         if context.active_object is not None and context.active_object.type == "MESH":
             box = layout.box()
@@ -36,8 +34,13 @@ class PBDPanel(bpy.types.Panel):
             row.prop(context.active_object.pbd_prop, "draw_index")
             row = box.row()
             row.prop(context.active_object.pbd_prop, "display", text="Display")
-            row.prop(context.active_object.pbd_prop, "mouse_region", text="Mouse detection")
 
+            row = box.row()
+            row.prop(context.active_object.pbd_prop, "mouse_region", text="Mouse detection")
+            col = row.column()
+            row = col.row()
+            row.active = context.active_object.pbd_prop.mouse_region
+            row.prop(context.active_object.pbd_prop, "bounding", text="Bounding rectangle only")
 
         if context.active_object is not None and context.active_object.active_material is not None:
             box = layout.box()
@@ -90,7 +93,6 @@ class PBDPanel(bpy.types.Panel):
             col.separator()
             col.prop(context.scene.pbd_prop, "json_additional_option")
 
-
         col.separator()
         col = box.column()
         col.separator()
@@ -99,13 +101,13 @@ class PBDPanel(bpy.types.Panel):
         col.separator()
         col.separator()
         row = box.row()
-        row.operator("export.json_from_obj", text="Export PBD(js) from OBJ", icon="EXPORT")
+        row.operator("export.json_from_obj", text="Export .js (pbd) from .obj", icon="EXPORT")
         row.prop(context.scene.pbd_prop, "json_import_path", text=".obj")
 
         box = layout.box()
         box.label("Importing")
         col = box.column()
-        col.operator("import.pbd_obj_scene", text="Import OBJ", icon="IMPORT")
+        col.operator("import.pbd_obj_scene", text="Import from .obj", icon="IMPORT")
 
 
 def register():
