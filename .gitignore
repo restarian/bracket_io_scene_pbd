@@ -2,6 +2,6 @@ __pycache__/
 /node_modules/
 *.un~
 *.~
-local/
+/local/
 *.sw[a-z]
 
