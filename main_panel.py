@@ -44,7 +44,7 @@ class PBDPanel(bpy.types.Panel):
             col = row.column()
             row = col.row()
             row.active = context.active_object.pbd_prop.mouse_region
-            row.prop(context.active_object.pbd_prop, "bounding", text="Bounding rectangle only")
+            row.prop(context.active_object.pbd_prop, "bounding", text="Detect bounds only")
 
         if context.active_object is not None and context.active_object.active_material is not None:
             box = layout.box()
@@ -63,12 +63,13 @@ class PBDPanel(bpy.types.Panel):
         col.prop(context.scene.pbd_prop, "use_selection")
         col.prop(context.scene.pbd_prop, "use_animation")
 
-        col.prop(context.scene.pbd_prop, "display_conversion", text="JSON PBD Exporting",
-            icon="TRIA_DOWN" if context.scene.pbd_prop.display_conversion else "TRIA_RIGHT",
-            emboss=False
-        )
+        if len(context.preferences.addons["bracket_io_scene_pbd"].preferences.script_path):
+            col.prop(context.scene.pbd_prop, "display_conversion", text="JSON PBD Exporting",
+                icon="TRIA_DOWN" if context.scene.pbd_prop.display_conversion else "TRIA_RIGHT",
+                emboss=False
+            )
 
-        if context.scene.pbd_prop.display_conversion:
+        if context.scene.pbd_prop.display_conversion and len(context.preferences.addons["bracket_io_scene_pbd"].preferences.script_path):
             col = box.column()
             col.prop(context.scene.pbd_prop, "convert_to_json", text="Export a JSON file")
             col.separator()
@@ -96,6 +97,10 @@ class PBDPanel(bpy.types.Panel):
 
             col.separator()
             col.prop(context.scene.pbd_prop, "json_additional_option")
+        else:
+            col.separator()
+            col.label(text="..add batten_mesh.js to enable json exporting..")
+
 
         col.separator()
         col = box.column()

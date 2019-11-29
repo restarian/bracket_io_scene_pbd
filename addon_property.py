@@ -34,12 +34,12 @@ class ExportPropObject(bpy.types.PropertyGroup):
 
     mouse_region = BoolProperty(
         default=True,
-        description="Only applies to widget exports. Set an object as a hitbox area for widget mouse detection. The bounding rectangle of all the objects will be used if all of them are unchecked (set to false)"
+        description="Only applies to widget exports. Set the current object as a mouse detection area for widgets."
         )
 
     bounding = BoolProperty(
         default=False,
-        description="This will use the bounding rectangle of the object created from its meta data for mouse detection which is faster than checking all of the polygons"
+        description="This will use only the bounding rectangle of the object created from its meta data for mouse detection which is faster than checking all of the polygons"
         )
 
     cull_face = EnumProperty(items= (('back', 'Cull Back Faces', 'Cull all back facing polygons'),
@@ -159,7 +159,7 @@ class ExportPropScene(bpy.types.PropertyGroup):
 
     json_asset_root = StringProperty(
             name="Server root",
-            description="(Optional) Choose the directory which serves as the base url for the network server. This is prepended to any asset urls created in the json file",
+            description="(Optional) Must be an absolute path string! Choose the directory which serves as the base url for the network server. This is prepended to any asset urls created in the json file",
             default="",
             maxlen=1024,
             subtype='DIR_PATH'
@@ -167,7 +167,7 @@ class ExportPropScene(bpy.types.PropertyGroup):
 
     json_texture_subdir = StringProperty(
             name="Texture sub-directory",
-            description="(Optional) A relative path to the JSON destination path which will store all of the textures used within the JSON export. Note: Textures are copied from the input specified in the OBJ data to the destination (not moved)",
+            description="(Optional) Must be a relative path string! A relative path to the JSON destination path which will store all of the textures used within the JSON export. Note: Textures are copied from the input specified in the OBJ data to the destination (not moved)",
             default="Textures",
             maxlen=1024,
             subtype='DIR_PATH'
@@ -175,7 +175,7 @@ class ExportPropScene(bpy.types.PropertyGroup):
 
     json_import_path = StringProperty(
             name="Input OBJ file",
-            description="(Optional) A JSON file may be exported using an input OBJ file instead of the OBJ file exported from the scene",
+            description="(Optional) Must be an absolute path string! A JSON file may be exported using an input OBJ file instead of the OBJ file exported from the scene",
             default="",
             maxlen=1024,
             subtype='FILE_PATH'

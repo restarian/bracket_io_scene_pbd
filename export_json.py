@@ -25,7 +25,7 @@ def ShowMessageBox(message = "", title = "PBD JSON Exporting", icon = 'INFO'):
     message = str(message).replace("\\t", "   ").replace("\t", "   ").replace("\\n", "\n")
     def draw(self, context):
         for m in message.splitlines():
-            self.layout.label(m)
+            self.layout.label(text=m)
     bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
 
 def save(context,
