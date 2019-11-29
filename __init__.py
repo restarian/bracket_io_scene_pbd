@@ -10,34 +10,33 @@ bl_info = {
     "category": "Import-Export"
 }
 
-modulesNames = ["addon_preference", "main_panel", "addon_property", "text_creation", "object_creation", "file_export", "file_import" ]
+moduleNames = ["addon_preference", "main_panel", "addon_property", "text_creation", "object_creation", "file_export", "file_import" ]
 
-import sys
-import importlib
-import bpy
-
-modulesFullNames = {}
-for currentModuleName in modulesNames:
-    modulesFullNames[currentModuleName] = ('{}.{}'.format(__name__, currentModuleName))
-
-for currentModuleFullName in modulesFullNames.values():
-    if currentModuleFullName in sys.modules:
-        importlib.reload(sys.modules[currentModuleFullName])
-    else:
-        globals()[currentModuleFullName] = importlib.import_module(currentModuleFullName)
-        setattr(globals()[currentModuleFullName], 'modulesNames', modulesFullNames)
+from . import addon_preference
+from . import addon_property
+from . import text_creation
+from . import object_creation
+from . import file_export
+from . import file_import
+from . import main_panel
 
 def register():
-    for currentModuleName in modulesFullNames.values():
-        if currentModuleName in sys.modules:
-            if hasattr(sys.modules[currentModuleName], 'register'):
-                sys.modules[currentModuleName].register()
+    addon_preference.register()
+    addon_property.register()
+    text_creation.register()
+    object_creation.register()
+    main_panel.register()
+    file_export.register()
+    file_import.register()
 
 def unregister():
-    for currentModuleName in modulesFullNames.values():
-        if currentModuleName in sys.modules:
-            if hasattr(sys.modules[currentModuleName], 'unregister'):
-                sys.modules[currentModuleName].unregister()
+    addon_preference.unregister()
+    addon_property.unregister()
+    text_creation.unregister()
+    object_creation.unregister()
+    main_panel.unregister()
+    file_export.unregister()
+    file_import.unregister()
 
 if __name__ == "__main__":
     register()

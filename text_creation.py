@@ -1,7 +1,7 @@
 import bpy
 
 class ResetCharacter(bpy.types.Operator):
-    """vided"""
+    """Reset the characters to the default values which is set in the preferences of this module"""
 
     bl_idname = "scene.pbd_reset_character"
     bl_label = "Reset text"
@@ -9,7 +9,7 @@ class ResetCharacter(bpy.types.Operator):
 
       #description = "All characters which are contained in the language. This is used for the reset button as well",
     def execute(self, context):
-        context.scene.pbd_prop.character_array = context.user_preferences.addons["bracket_io_scene_pbd"].preferences.alphabet
+        context.scene.pbd_prop.character_array = context.preferences.addons["bracket_io_scene_pbd"].preferences.alphabet
         return {'FINISHED'}
 
 class CreateTextCurve(bpy.types.Operator):

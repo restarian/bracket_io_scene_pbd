@@ -37,8 +37,9 @@ class ConvertToObject(bpy.types.Operator):
             x += 1
 
         bpy.ops.object.select_all(action='DESELECT')
-        curve.select = True
-        bpy.ops.object.delete()
+        if context.scene.pbd_prop.delete_after:
+            curve.select_set(True)
+            bpy.ops.object.delete()
 
         self.report({'INFO'}, "Sucessfully created " + str(len(arr)) + " character objects.")
 

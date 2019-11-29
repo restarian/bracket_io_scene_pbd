@@ -20,14 +20,13 @@
 
 import bpy
 from bpy.props import ( BoolProperty, FloatProperty, StringProperty, EnumProperty, IntProperty )
-from bpy_extras.io_utils import ( ExportHelper, ImportHelper, orientation_helper_factory, path_reference_mode, axis_conversion )
+from bpy_extras.io_utils import ( ExportHelper, ImportHelper, orientation_helper, path_reference_mode, axis_conversion )
 
 from . import export_obj
 from . import export_json
 
-IOOBJOrientationHelper = orientation_helper_factory("IOOBJOrientationHelper", axis_forward='-Y', axis_up='-Z')
-
-class ExportFile(bpy.types.Operator, ExportHelper, IOOBJOrientationHelper):
+@orientation_helper(axis_forward='-Y', axis_up='-Z')
+class ExportFile(bpy.types.Operator, ExportHelper):
     """Save a Wavefront OBJ File with some added features to conform to the PBD engine"""
 
     bl_idname = "export.pbd_file"

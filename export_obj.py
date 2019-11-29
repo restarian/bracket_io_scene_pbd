@@ -25,14 +25,16 @@ import bpy
 import mathutils
 import bpy_extras.io_utils
 
-from progress_report import ProgressReport, ProgressReportSubstep
+from bpy_extras.wm_utils.progress_report import (
+    ProgressReport,
+    ProgressReportSubstep,
+)
 
 def name_compat(name):
     if name is None:
         return 'None'
     else:
         return name.replace(' ', '_')
-
 
 def mesh_triangulate(me):
     import bmesh
@@ -41,7 +43,6 @@ def mesh_triangulate(me):
     bmesh.ops.triangulate(bm, faces=bm.faces)
     bm.to_mesh(me)
     bm.free()
-
 
 def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
     from mathutils import Color, Vector

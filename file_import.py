@@ -7,16 +7,15 @@ from bpy.props import (
         )
 from bpy_extras.io_utils import (
         ImportHelper,
-        orientation_helper_factory,
+        orientation_helper,
         path_reference_mode,
         axis_conversion,
         )
 
-IOOBJOrientationHelper = orientation_helper_factory("IOOBJOrientationHelper", axis_forward='-Z', axis_up='Y')
-
 from . import import_obj
 
-class ImportOBJ(bpy.types.Operator, ImportHelper, IOOBJOrientationHelper):
+@orientation_helper(axis_forward='-Y', axis_up='-Z')
+class ImportOBJ(bpy.types.Operator, ImportHelper):
     """Load a PBD OBJ File"""
     bl_idname = "import.pbd_obj_scene"
     bl_label = "Import OBJ"

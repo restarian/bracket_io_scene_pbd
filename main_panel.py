@@ -6,29 +6,33 @@ class PBDPanel(bpy.types.Panel):
     bl_label = "Play Based Directive"
     bl_idname = "OBJECT_PT_pbd_panel"
     bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
-    bl_category = "PBD"
+    bl_region_type = 'UI'
+    bl_category = "Play Based Directive"
 
     def draw(self, context):
 
         layout = self.layout
         box = layout.box()
-        box.label("Font Text Creation")
-        split = box.split(percentage=0.29)
+        box.label(text="Font-Text Creation")
+        split = box.split(factor=0.29)
         split.operator("scene.pbd_reset_character")
         split.prop(context.scene.pbd_prop, 'character_array', text="")
         row = box.row()
         row.operator("scene.pbd_create_text_curve", text="Create text curve")
 
         box = layout.box()
-        box.label("Font Object Creation")
+        lbl = "Font-Object Creation"
+        if context.active_object is not None and context.active_object.type == "FONT" and context.active_object.mode == "OBJECT":
+            lbl += " - " + str(context.active_object.name)
+        box.label(text=lbl)
         col = box.column()
         col.prop(context.scene.pbd_prop, "label_prefix", text="Name prefix")
+        col.prop(context.scene.pbd_prop, "delete_after")
         col.operator("curve.pbd_create_object", text="Convert font to objects")
 
         if context.active_object is not None and context.active_object.type == "MESH":
             box = layout.box()
-            box.label("Object Properties")
+            box.label(text="Object Properties")
             row = box.row()
             row.prop(context.active_object.pbd_prop, "cull_face", text="")
             row.prop(context.active_object.pbd_prop, "draw_index")
@@ -44,15 +48,15 @@ class PBDPanel(bpy.types.Panel):
 
         if context.active_object is not None and context.active_object.active_material is not None:
             box = layout.box()
-            box.label("Material Properties")
+            box.label(text="Material Properties")
             row = box.row()
-            split = box.split(percentage=0.48)
+            split = box.split(factor=0.48)
             split.prop(context.active_object.active_material.pbd_prop, "cull_face", text="")
             row = box.row()
             row.prop(context.active_object.active_material.pbd_prop, "display", text="Display")
 
         box = layout.box()
-        box.label("File Exporting")
+        box.label(text="File Exporting")
         col = box.column()
 
         col.prop(context.scene.pbd_prop, "use_draw_order", text="Use draw order index")
@@ -88,7 +92,7 @@ class PBDPanel(bpy.types.Panel):
 
             col.prop(context.scene.pbd_prop, "json_asset_root", text="Assest server root")
             col.prop(context.scene.pbd_prop, "json_texture_subdir", text="Textures sub-directory")
-            col.prop(context.scene.pbd_prop, "json_output_path", icon="SAVE_COPY", text='JSON destination directory')
+            col.prop(context.scene.pbd_prop, "json_output_path", text='JSON destination directory')
 
             col.separator()
             col.prop(context.scene.pbd_prop, "json_additional_option")
@@ -105,10 +109,9 @@ class PBDPanel(bpy.types.Panel):
         row.prop(context.scene.pbd_prop, "json_import_path", text=".obj")
 
         box = layout.box()
-        box.label("Importing")
+        box.label(text="Importing")
         col = box.column()
         col.operator("import.pbd_obj_scene", text="Import from .obj", icon="IMPORT")
-
 
 def register():
 

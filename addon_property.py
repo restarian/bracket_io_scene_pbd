@@ -69,6 +69,12 @@ class ExportPropScene(bpy.types.PropertyGroup):
       description = "The prefix of the created text object labels.",
     )
 
+    delete_after = BoolProperty(
+        name="Delete After Creation",
+        description="Delete the selected text/font curve after it is converted to the mesh objects.",
+        default=False,
+    )
+
     use_selection = BoolProperty(
             name="Selection only",
             description="Export selected objects only. Otherwise, the entire scene will be exported",
