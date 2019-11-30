@@ -208,7 +208,7 @@ def write_nurb(fw, ob, ob_mat):
             pt_num += 1
         tot_verts += pt_num
 
-        fw('g %s\n' % (name_compat(ob.name)))  # name_compat(ob.getData(1)) could use the data name too
+        fw('g %s\n' % name_compat(ob.name))  # name_compat(ob.getData(1)) could use the data name too
         fw('cstype bspline\n')  # not ideal, hard coded
         fw('deg %d\n' % DEG_ORDER_U)  # not used for curves but most files have it still
 
@@ -451,11 +451,11 @@ def write_file(filepath, objects, depsgraph, scene,
 
                         if EXPORT_BLEN_OBS or EXPORT_GROUP_BY_OB:
                             name1 = ob.name
-                            name2 = ob.data.name
-                            if name1 == name2:
-                                obnamestring = name_compat(name1)
-                            else:
-                                obnamestring = '%s_%s' % (name_compat(name1), name_compat(name2))
+                            #name2 = ob.data.name
+                            #if name1 == name2:
+                            obnamestring = name_compat(name1)
+                            #else:
+                            #    obnamestring = '%s_%s' % (name_compat(name1), name_compat(name2))
 
                             if EXPORT_BLEN_OBS:
                                 fw('o %s\n' % obnamestring)  # Write Object name
@@ -463,9 +463,9 @@ def write_file(filepath, objects, depsgraph, scene,
                                 fw('g %s\n' % obnamestring)
 
                             fw('invis %d\n' % int(ob.pbd_prop.display))
-                            fw('mregion %d\n' % int(ob.pbd_prop.mouse_region))
-                            fw('boundingonly %d\n' % int(ob.pbd_prop.bounding))
                             fw('cull %s\n' % str(ob.pbd_prop.cull_face))
+                            fw('mouseregion %s\n' % str(ob.pbd_prop.mouse_region and (ob.pbd_prop.detect_bounding and "bounding" or "exact") or "off"))
+                            fw('clipregion %s\n' % str(ob.pbd_prop.clip_region and (ob.pbd_prop.clip_bounding and "bounding" or "exact") or "off"))
 
                         subprogress2.step()
 
@@ -565,7 +565,8 @@ def write_file(filepath, objects, depsgraph, scene,
                                     # Write a null material, since we know the context has changed.
                                     if EXPORT_GROUP_BY_MAT:
                                         # can be mat_image or (null)
-                                        fw("g %s_%s\n" % (name_compat(ob.name), name_compat(ob.data.name)))
+                                        #fw("g %s_%s\n" % (name_compat(ob.name), name_compat(ob.data.name)))
+                                        fw("g %s\n" % name_compat(ob.name))
                                     if EXPORT_MTL:
                                         fw("usemtl (null)\n")  # mat, image
 
@@ -597,7 +598,8 @@ def write_file(filepath, objects, depsgraph, scene,
 
                                     if EXPORT_GROUP_BY_MAT:
                                         # can be mat_image or (null)
-                                        fw("g %s_%s_%s\n" % (name_compat(ob.name), name_compat(ob.data.name), mat_data[0]))
+                                        #fw("g %s_%s_%s\n" % (name_compat(ob.name), name_compat(ob.data.name), mat_data[0]))
+                                        fw("g %s_%s\n" % (name_compat(ob.name), mat_data[0]))
                                     if EXPORT_MTL:
                                         fw("usemtl %s\n" % mat_data[0])  # can be mat_image or (null)
 

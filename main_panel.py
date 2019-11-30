@@ -44,7 +44,14 @@ class PBDPanel(bpy.types.Panel):
             col = row.column()
             row = col.row()
             row.active = context.active_object.pbd_prop.mouse_region
-            row.prop(context.active_object.pbd_prop, "bounding", text="Detect bounds only")
+            row.prop(context.active_object.pbd_prop, "detect_bounding", text="Detect bounds only")
+
+            row = box.row()
+            row.prop(context.active_object.pbd_prop, "clip_region", text="Clip area")
+            col = row.column()
+            row = col.row()
+            row.active = context.active_object.pbd_prop.clip_region
+            row.prop(context.active_object.pbd_prop, "clip_bounding", text="Clip bounds only")
 
         if context.active_object is not None and context.active_object.active_material is not None:
             box = layout.box()

@@ -516,8 +516,8 @@ def write_file(filepath, objects, scene,
                                 fw('g %s\n' % obnamestring)
 
                             fw('invis %d\n' % int(ob.pbd_prop.display))
-                            fw('mregion %d\n' % int(ob.pbd_prop.mouse_region))
-                            fw('boundingonly %d\n' % int(ob.pbd_prop.bounding))
+                            fw('mouseregion %s\n' % ob.pbd_prop.mouse_region and (obd.pbd_prop.detect_bounding and "bounding" or "exact") or "off"
+                            fw('clipregion %s\n' % ob.pbd_prop.clip_region and (obd.pbd_prop.clip_bounding and "bounding" or "exact") or "off"
                             fw('cull %s\n' % str(ob.pbd_prop.cull_face))
 
                         subprogress2.step()

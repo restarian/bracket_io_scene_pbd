@@ -22,8 +22,6 @@ class ExportPropMaterial(bpy.types.PropertyGroup):
                                  default = "back"
                              )
 
-
-
 class ExportPropObject(bpy.types.PropertyGroup):
 
     draw_index = IntProperty(
@@ -33,13 +31,23 @@ class ExportPropObject(bpy.types.PropertyGroup):
         )
 
     mouse_region = BoolProperty(
-        default=True,
+        default=False,
         description="Only applies to widget exports. Set the current object as a mouse detection area for widgets."
         )
 
-    bounding = BoolProperty(
+    detect_bounding = BoolProperty(
         default=False,
-        description="This will use only the bounding rectangle of the object created from its meta data for mouse detection which is faster than checking all of the polygons"
+        description="This will use only the bounding rectangle of the object created from its meta data for mouse detection which is alot faster than checking all of the polygons"
+        )
+
+    clip_region = BoolProperty(
+        default=False,
+        description="Only applies to widget exports. Set the current object as a clipping region area for widgets."
+        )
+
+    clip_bounding = BoolProperty(
+        default=False,
+        description="This will use only the bounding rectangle of the object created from its meta data for clipping which is a little faster than checking all of the polygons"
         )
 
     cull_face = EnumProperty(items= (('back', 'Cull Back Faces', 'Cull all back facing polygons'),
