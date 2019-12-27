@@ -78,26 +78,12 @@ def save(context,
         param += addition_option.split()
 
     print(param)
-    popenobj = subprocess.Popen(param, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-    err = ""
-    out = ""
+    compleated = subprocess.run(param, timeout=12, capture_output=True)
+    # popenobj = subprocess.Popen(param, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
-    while not popenobj.poll():
-        stderrdata = popenobj.stderr.readline()
-        if stderrdata:
-            print(str(stderrdata))
-            err += stderrdata.decode("UTF-8")
-            continue
-
-        stdoutdata = popenobj.stdout.readline()
-        if stdoutdata:
-            out += stdoutdata.decode("UTF-8")
-        else:
-            break
-
-    if not err.isspace():
-        ShowMessageBox(err+"\n"+out, "Unable to run obj to json script", "ERROR")
+    if not compleated.stderr.isspace():
+        ShowMessageBox(compleated.stderr, "Unable to run obj to json script", "ERROR")
         return False
 
-    ShowMessageBox(out, "Batten mesh output", "INFO")
+    ShowMessageBox(compleated.stdout, "Batten mesh output", "INFO")
     return True

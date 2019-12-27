@@ -1,4 +1,4 @@
-import bpy
+import bpy, os
 from bpy.props import ( EnumProperty, BoolProperty, FloatProperty, StringProperty, EnumProperty, IntProperty )
 
 class ExportPropMaterial(bpy.types.PropertyGroup):
@@ -56,7 +56,7 @@ class ExportPropObject(bpy.types.PropertyGroup):
                                      ('none', 'Do not cull', 'Disable polygon culling'),
                                  ),
                                  name="Polygon culling",
-                                 default = "back"
+                                 default = "none"
                              )
 
     display = BoolProperty(
@@ -64,6 +64,14 @@ class ExportPropObject(bpy.types.PropertyGroup):
         name="Display",
         description="Draw the material when rendering in the PBD engine. This can still be used as a mouse detection region however"
         )
+
+def make_path_absolute(key):
+    """ Prevent Blender's relative paths of doom """
+    props = bpy.context.scene.pbd_prop
+    sane_path = lambda p: os.path.abspath(bpy.path.abspath(p))
+
+    if key in props and props[key].startswith('//'):
+        props[key] = sane_path(props[key])
 
 class ExportPropScene(bpy.types.PropertyGroup):
 
@@ -162,20 +170,21 @@ class ExportPropScene(bpy.types.PropertyGroup):
             description="(Required) Choose a directory to create the json file. This should be within the project html structure",
             default="",
             maxlen=1024,
+            update = lambda s,c: make_path_absolute('json_output_path'),
             subtype='DIR_PATH'
             )
-
     json_asset_root = StringProperty(
             name="Server root",
-            description="(Optional) Must be an absolute path string! Choose the directory which serves as the base url for the network server. This is prepended to any asset urls created in the json file",
+            description="(Optional) Choose the directory which serves as the base url for the network server. This is prepended to any asset urls created in the json file",
             default="",
             maxlen=1024,
+            update = lambda s,c: make_path_absolute('json_asset_root'),
             subtype='DIR_PATH'
             )
 
     json_texture_subdir = StringProperty(
             name="Texture sub-directory",
-            description="(Optional) Must be a relative path string! A relative path to the JSON destination path which will store all of the textures used within the JSON export. Note: Textures are copied from the input specified in the OBJ data to the destination (not moved)",
+            description="(Optional) Must be a relative path string. A relative path to the JSON destination path which will store all of the textures used within the JSON export. Note: Textures are copied from the input specified in the OBJ data to the destination (not moved)",
             default="Textures",
             maxlen=1024,
             subtype='DIR_PATH'
@@ -183,9 +192,10 @@ class ExportPropScene(bpy.types.PropertyGroup):
 
     json_import_path = StringProperty(
             name="Input OBJ file",
-            description="(Optional) Must be an absolute path string! A JSON file may be exported using an input OBJ file instead of the OBJ file exported from the scene",
+            description="(Optional) A JSON file may be exported using an input OBJ file instead of the OBJ file exported from the scene",
             default="",
             maxlen=1024,
+            update = lambda s,c: make_path_absolute('json_import_path'),
             subtype='FILE_PATH'
             )
 
