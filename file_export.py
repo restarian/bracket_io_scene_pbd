@@ -171,6 +171,7 @@ class ExportFile(bpy.types.Operator, ExportHelper):
                 ignore_normals=context.scene.pbd_prop.json_ignore_normals,
                 include_meta=context.scene.pbd_prop.json_include_meta,
                 force_texture=context.scene.pbd_prop.json_force_texture,
+                compression_level=context.scene.pbd_prop.json_compressed,
                 addition_option=context.scene.pbd_prop.json_additional_option,
            )
 
@@ -200,6 +201,7 @@ class ExportJSON(bpy.types.Operator):
             ignore_normals=context.scene.pbd_prop.json_ignore_normals,
             include_meta=context.scene.pbd_prop.json_include_meta,
             force_texture=context.scene.pbd_prop.json_force_texture,
+            compression_level=context.scene.pbd_prop.json_compressed,
             addition_option=context.scene.pbd_prop.json_additional_option,
        )
 

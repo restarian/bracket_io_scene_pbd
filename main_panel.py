@@ -94,6 +94,9 @@ class PBDPanel(bpy.types.Panel):
 
             row.prop(context.scene.pbd_prop, "json_force_texture", text="Overwrite textures")
             row.prop(context.scene.pbd_prop, "json_precision", text="Data precision")
+            row = box.row()
+            row.active = context.scene.pbd_prop.convert_to_json
+            row.prop(context.scene.pbd_prop, "json_compressed", text="Compression level")
 
             col = box.column()
             col.active = context.scene.pbd_prop.convert_to_json

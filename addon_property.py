@@ -134,6 +134,14 @@ class ExportPropScene(bpy.types.PropertyGroup):
         description="This will round anything greator than the specified amount as significant digits to reduce the exported JSON file size when possible"
         )
 
+    json_compressed = IntProperty(
+        name="Compression level",
+        default=2,
+        min=1,
+        max=5,
+        description="Higher values will result in less white space and lesser size"
+        )
+
     json_as_widget = BoolProperty(
             name="Output as widget",
             description="Export the data using a zero value for the depth to conform to pbd standard",

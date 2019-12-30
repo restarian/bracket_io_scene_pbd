@@ -39,6 +39,7 @@ def save(context,
          ignore_normals=True,
          include_meta=True,
          force_texture=True,
+         compression_level=2,
          addition_option="",
          ):
 
@@ -56,6 +57,9 @@ def save(context,
 
     if include_meta:
         param.append("-m")
+
+    param.append("--compression-level")
+    param.append(str(compression_level))
 
     if export_type == "widget":
         param.append("--shift-origin")
