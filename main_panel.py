@@ -27,7 +27,7 @@ class PBDPanel(bpy.types.Panel):
         box.label(text=lbl)
         col = box.column()
         col.prop(context.scene.pbd_prop, "label_prefix", text="Name prefix")
-        col.prop(context.scene.pbd_prop, "delete_after")
+        col.prop(context.scene.pbd_prop, "delete_after", text="Delete text after object creation")
         col.operator("curve.pbd_create_object", text="Convert font to objects")
 
         if context.active_object is not None and context.active_object.type == "MESH":

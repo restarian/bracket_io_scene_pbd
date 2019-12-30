@@ -22,7 +22,7 @@ import bpy
 from bpy.props import ( BoolProperty, FloatProperty, StringProperty, EnumProperty, IntProperty )
 from bpy_extras.io_utils import ( ExportHelper, ImportHelper, orientation_helper, path_reference_mode, axis_conversion )
 
-from . import export_obj28
+from . import export_obj
 from . import export_json
 
 @orientation_helper(axis_forward='-Y', axis_up='-Z')
@@ -157,7 +157,7 @@ class ExportFile(bpy.types.Operator, ExportHelper):
         keywords["global_matrix"] = global_matrix
 
         input_path = keywords["filepath"]
-        export_obj28.save(context, **keywords)
+        export_obj.save(context, **keywords)
 
         if context.scene.pbd_prop.convert_to_json and len(context.preferences.addons["bracket_io_scene_pbd"].preferences.script_path):
 

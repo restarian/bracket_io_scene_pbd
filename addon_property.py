@@ -16,10 +16,11 @@ class ExportPropMaterial(bpy.types.PropertyGroup):
     cull_face = EnumProperty(items= (('back', 'Cull Back Faces', 'Cull all back facing polygons'),
                                      ('front', 'Cull Front Faces', 'Cull all fron facing polygons'),
                                      ('back_font', 'Cull All Faces', 'Cull both front and back polygons'),
-                                     ('none', 'Do not cull', 'Disable polygon culling'),
+                                     ('none', 'Do not Cull', 'Disable polygon culling'),
+                                     ('unused', 'Ignore Culling', 'Ignore culling and use whatever is set'),
                                  ),
                                  name="Polygon culling",
-                                 default = "back"
+                                 default = "unused"
                              )
 
 class ExportPropObject(bpy.types.PropertyGroup):
@@ -53,10 +54,11 @@ class ExportPropObject(bpy.types.PropertyGroup):
     cull_face = EnumProperty(items= (('back', 'Cull Back Faces', 'Cull all back facing polygons'),
                                      ('front', 'Cull Front Faces', 'Cull all fron facing polygons'),
                                      ('back_font', 'Cull All Faces', 'Cull both front and back polygons'),
-                                     ('none', 'Do not cull', 'Disable polygon culling'),
+                                     ('none', 'Do not Cull', 'Disable polygon culling'),
+                                     ('unused', 'Ignore Culling', 'Ignore culling and use whatever is set'),
                                  ),
                                  name="Polygon culling",
-                                 default = "none"
+                                 default = "back"
                              )
 
     display = BoolProperty(
