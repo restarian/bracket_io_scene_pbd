@@ -44,7 +44,7 @@ class PBDPanel(bpy.types.Panel):
             col = row.column()
             row = col.row()
             row.active = context.active_object.pbd_prop.mouse_region
-            row.prop(context.active_object.pbd_prop, "detect_bounding", text="Detect bounds only")
+            row.prop(context.active_object.pbd_prop, "mouse_bounding", text="Detect bounds only")
 
             row = box.row()
             row.prop(context.active_object.pbd_prop, "clip_region", text="Clip area")
@@ -69,6 +69,8 @@ class PBDPanel(bpy.types.Panel):
         col.prop(context.scene.pbd_prop, "use_draw_order", text="Use draw order index")
         col.prop(context.scene.pbd_prop, "use_selection")
         col.prop(context.scene.pbd_prop, "use_animation")
+        col.prop(context.scene.pbd_prop, "model_type", text="Model Name")
+
 
         if len(context.preferences.addons["bracket_io_scene_pbd"].preferences.script_path):
             col.prop(context.scene.pbd_prop, "display_conversion", text="JSON PBD Exporting",
@@ -78,44 +80,62 @@ class PBDPanel(bpy.types.Panel):
 
         if context.scene.pbd_prop.display_conversion and len(context.preferences.addons["bracket_io_scene_pbd"].preferences.script_path):
             col = box.column()
-            col.prop(context.scene.pbd_prop, "convert_to_json", text="Export a JSON file")
+            col.prop(context.scene.pbd_prop, "convert_to_json", text="Export a javascript file")
             col.separator()
 
             row = box.row()
             row.active = context.scene.pbd_prop.convert_to_json
             row.prop(context.scene.pbd_prop, "json_export_type", expand=True, emboss=True)
+            type = context.scene.pbd_prop.json_export_type
+
+
+            if type == "terrain":
+                row = box.row()
+                row.prop(context.scene.pbd_prop, "terrain_segment_count", text="Number of segments")
+
+
             row = box.row()
-            row.active = context.scene.pbd_prop.convert_to_json
+            row.active = context.scene.pbd_prop.convert_to_json and type != "terrain"
             row.prop(context.scene.pbd_prop, "json_ignore_normals", text="Ignore normals")
             row.prop(context.scene.pbd_prop, "json_include_meta", text="Include meta")
 
             row = box.row()
-            row.active = context.scene.pbd_prop.convert_to_json
+            row.active = context.scene.pbd_prop.convert_to_json and type != "terrain"
 
             row.prop(context.scene.pbd_prop, "json_force_texture", text="Overwrite textures")
             row.prop(context.scene.pbd_prop, "json_precision", text="Data precision")
             row = box.row()
-            row.active = context.scene.pbd_prop.convert_to_json
+            row.active = context.scene.pbd_prop.convert_to_json and type != "terrain"
             row.prop(context.scene.pbd_prop, "json_compressed", text="Compression level")
 
             col = box.column()
-            col.active = context.scene.pbd_prop.convert_to_json
+            col.active = context.scene.pbd_prop.convert_to_json and type != "terrain"
 
             col.prop(context.scene.pbd_prop, "json_asset_root", text="Assest server root")
             col.prop(context.scene.pbd_prop, "json_texture_subdir", text="Textures sub-directory")
+            col = box.column()
+            col.active = context.scene.pbd_prop.convert_to_json
             col.prop(context.scene.pbd_prop, "json_output_path", text='JSON destination directory')
 
+            col = box.column()
+            col.active = context.scene.pbd_prop.convert_to_json and type != "terrain"
             col.separator()
             col.prop(context.scene.pbd_prop, "json_additional_option")
-        else:
+        elif not len(context.preferences.addons["bracket_io_scene_pbd"].preferences.script_path):
             col.separator()
-            col.label(text="..add batten_mesh.js to enable json exporting..")
+            col.label(text="..add the batten_mesh convert.js to enable json exporting..")
 
 
         col.separator()
         col = box.column()
+        col.active = type != "terrain"
         col.separator()
         col.operator("export.pbd_file", text="-- EXPORT --", icon="EXPORT")
+        col.separator()
+        col = box.column()
+        col.active = type == "terrain"
+        col.separator()
+        col.operator("export.pbd_terrain_file", text="Export a Terrain JS File", icon="EXPORT")
 
         col.separator()
         col.separator()
@@ -126,7 +146,7 @@ class PBDPanel(bpy.types.Panel):
         box = layout.box()
         box.label(text="Importing")
         col = box.column()
-        col.operator("import.pbd_obj_scene", text="Import from .obj", icon="IMPORT")
+        col.operator("import.pbd_obj", text="Import from a .obj", icon="IMPORT")
 
 def register():
 

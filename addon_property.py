@@ -1,4 +1,5 @@
 import bpy, os
+from math import sqrt
 from bpy.props import ( EnumProperty, BoolProperty, FloatProperty, StringProperty, EnumProperty, IntProperty )
 
 class ExportPropMaterial(bpy.types.PropertyGroup):
@@ -28,7 +29,7 @@ class ExportPropObject(bpy.types.PropertyGroup):
     draw_index = IntProperty(
         name="Draw order index",
         default=1,
-        description="The draw index specifies what order the object will appear in the OBJ and JSON exports. This affects the order of drawing in the PBD engine as well"
+        description="The draw index specifies what order the object will appear in the OBJ and js exports. This affects the order of drawing in the PBD engine as well"
         )
 
     mouse_region = BoolProperty(
@@ -36,7 +37,7 @@ class ExportPropObject(bpy.types.PropertyGroup):
         description="Only applies to widget exports. Set the current object as a mouse detection area for widgets."
         )
 
-    detect_bounding = BoolProperty(
+    mouse_bounding = BoolProperty(
         default=False,
         description="This will use only the bounding rectangle of the object created from its meta data for mouse detection which is alot faster than checking all of the polygons"
         )
@@ -67,6 +68,24 @@ class ExportPropObject(bpy.types.PropertyGroup):
         description="Draw the material when rendering in the PBD engine. This can still be used as a mouse detection region however"
         )
 
+def get_terrain_sqrt(key, self, context):
+    """ Get the nearest square root of the terrain """
+    t = context.active_object
+    props = context.scene.pbd_prop
+    val = int(props[key])
+    v = 1
+
+    if t:
+        c = round(sqrt(len(t.data.vertices)))-1
+        while c >= 2:
+            if c >= val:
+                v = c
+            else:
+                break
+            c = int(c/2)
+
+        props[key] = int(v)
+
 def make_path_absolute(key):
     """ Prevent Blender's relative paths of doom """
     props = bpy.context.scene.pbd_prop
@@ -77,12 +96,12 @@ def make_path_absolute(key):
 
 class ExportPropScene(bpy.types.PropertyGroup):
 
-    character_array = bpy.props.StringProperty (
+    character_array = StringProperty (
         default = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890-=!@#$%^&*()_+`~[]\\{}|;':\",./<>?",
         description = "The character array to be used when generating a font text curve"
     )
 
-    label_prefix = bpy.props.StringProperty (
+    label_prefix = StringProperty (
       default = "f_",
       description = "The prefix of the created text object labels.",
     )
@@ -117,23 +136,38 @@ class ExportPropScene(bpy.types.PropertyGroup):
             )
 
     convert_to_json = BoolProperty(
-            name="Output json file",
-            description="Write out a JSON file which conforms to the PBD standards when exporting",
+            name="Output javscrtipt file",
+            description="Write out a javascript file which conforms to the PBD standards when exporting",
             default=False,
             )
 
-    json_export_type = EnumProperty(items= (('model', 'Model', 'A standard 3d model'),
-                                                 ('widget', 'Widget', 'An orthographic model'),
-                                                 ('font', 'Font', 'A font for use with PBD'),
-                                                 ),
-                                                 default = "model"
-                                             )
+    json_export_type = EnumProperty(items= (('model', 'Model', 'A standard 3d model for PBD'),
+                                             ('widget', 'Widget', 'An orthographic data model for PBD'),
+                                             ('font', 'Font', 'A font data model for use with PBD'),
+                                             ('terrain', 'Terrain', 'A terrain data model for use with PBD'),
+                                             ),
+                                             default = "model"
+                                         )
+    terrain_segment_count = IntProperty(
+        name="Segment count",
+        default=1,
+        min=1,
+        max=100000,
+        update = lambda s,c: get_terrain_sqrt('terrain_segment_count', s, c),
+        description="The amount of world segments which will be created when the terrain is imported into the engine",
+        )
+
+    model_type = StringProperty(
+        default = "blender_export",
+        description = "The name of the model as a type",
+        )
+
     json_precision = IntProperty(
         name="JSON data precision",
         default=5,
         min=1,
         max=16,
-        description="This will round anything greator than the specified amount as significant digits to reduce the exported JSON file size when possible"
+        description="This will round anything greator than the specified amount as significant digits to reduce the exported js file size when possible"
         )
 
     json_compressed = IntProperty(
@@ -152,7 +186,7 @@ class ExportPropScene(bpy.types.PropertyGroup):
 
     json_ignore_normals = BoolProperty(
             name="Skip lighting normals",
-            description="Do not include lighting normals in the exported JSON file",
+            description="Do not include lighting normals in the exported js file",
             default=True,
             )
 
@@ -164,13 +198,13 @@ class ExportPropScene(bpy.types.PropertyGroup):
 
     json_force_texture = BoolProperty(
             name="Overwrite textures",
-            description="Overwrite all textures copied to the destination with the JSON file. Otherwise, textures are only copied if one with the same name is not in the destination already",
+            description="Overwrite all textures copied to the destination with the js file. Otherwise, textures are only copied if one with the same name is not in the destination already",
             default=True,
             )
 
     json_additional_option = StringProperty(
             name="Additional parameters",
-            description="Any additional parameters to pass into the JSON exporting script",
+            description="Any additional parameters to pass into the js exporting script",
             default="",
             maxlen=256
             )
@@ -194,7 +228,7 @@ class ExportPropScene(bpy.types.PropertyGroup):
 
     json_texture_subdir = StringProperty(
             name="Texture sub-directory",
-            description="(Optional) Must be a relative path string. A relative path to the JSON destination path which will store all of the textures used within the JSON export. Note: Textures are copied from the input specified in the OBJ data to the destination (not moved)",
+            description="(Optional) Must be a relative path string. A relative path to the js destination path which will store all of the textures used within the js export. Note: Textures are copied from the input specified in the OBJ data to the destination (not moved)",
             default="Textures",
             maxlen=1024,
             subtype='DIR_PATH'
@@ -202,7 +236,7 @@ class ExportPropScene(bpy.types.PropertyGroup):
 
     json_import_path = StringProperty(
             name="Input OBJ file",
-            description="(Optional) A JSON file may be exported using an input OBJ file instead of the OBJ file exported from the scene",
+            description="(Optional) A js file may be exported using an input OBJ file instead of the OBJ file exported from the scene",
             default="",
             maxlen=1024,
             update = lambda s,c: make_path_absolute('json_import_path'),

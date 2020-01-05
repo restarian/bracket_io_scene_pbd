@@ -18,9 +18,7 @@
 
 # <pep8 compliant>
 
-import os
-
-import bpy
+import bpy, os
 from mathutils import Matrix, Vector, Color
 from bpy_extras import io_utils, node_shader_utils
 
@@ -111,7 +109,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                     fw('illum 2\n')  # light normally
 
                 # Also add some pbd properties
-                fw('invis %d\n' % int(mat.pbd_prop.display))
+                fw('display %d\n' % int(mat.pbd_prop.display))
                 fw('cull %s\n' % str(mat.pbd_prop.cull_face))
 
                 #### And now, the image textures...
@@ -161,8 +159,8 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                 fw('Ks 0.8 0.8 0.8\n')
                 fw('d 1\n')  # No alpha
                 fw('illum 2\n')  # light normally
-                fw('invis 1\n')
-                fw('cull none\n')
+                fw('display 1\n')
+                fw('cull unused\n')
 
 
 def test_nurbs_compat(ob):
@@ -305,6 +303,10 @@ def write_file(filepath, objects, depsgraph, scene,
             # Write Header
             fw('# PBD exported Blender v%s OBJ File: %r\n' % (bpy.app.version_string, os.path.basename(bpy.data.filepath)))
             fw('# www.blender.org\n')
+
+            if scene.pbd_prop:
+                if not scene.pbd_prop.model_type.isspace():
+                    fw('header_model_type %s\n' % scene.pbd_prop.model_type)
 
             # Tell the obj file what material file to use.
             if EXPORT_MTL:
@@ -462,9 +464,9 @@ def write_file(filepath, objects, depsgraph, scene,
                             else:  # if EXPORT_GROUP_BY_OB:
                                 fw('g %s\n' % obnamestring)
 
-                            fw('invis %d\n' % int(ob.pbd_prop.display))
+                            fw('display %d\n' % int(ob.pbd_prop.display))
                             fw('cull %s\n' % str(ob.pbd_prop.cull_face))
-                            fw('mouseregion %s\n' % str(ob.pbd_prop.mouse_region and (ob.pbd_prop.detect_bounding and "bounding" or "exact") or "off"))
+                            fw('mouseregion %s\n' % str(ob.pbd_prop.mouse_region and (ob.pbd_prop.mouse_bounding and "bounding" or "exact") or "off"))
                             fw('clipregion %s\n' % str(ob.pbd_prop.clip_region and (ob.pbd_prop.clip_bounding and "bounding" or "exact") or "off"))
 
                         subprogress2.step()

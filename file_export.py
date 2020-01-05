@@ -22,16 +22,68 @@ import bpy
 from bpy.props import ( BoolProperty, FloatProperty, StringProperty, EnumProperty, IntProperty )
 from bpy_extras.io_utils import ( ExportHelper, ImportHelper, orientation_helper, path_reference_mode, axis_conversion )
 
-from . import export_obj
-from . import export_json
+@orientation_helper(axis_forward='Y', axis_up='-Z')
+class ExportTerrain(bpy.types.Operator, ExportHelper):
+    """Save a terrain file which conforms to the PBD engine"""
 
-@orientation_helper(axis_forward='-Y', axis_up='-Z')
+    bl_idname = "export.pbd_terrain_file"
+    bl_label = 'Export'
+    bl_options = {'PRESET'}
+
+    filename_ext = ".js"
+    filter_glob = StringProperty(
+            default="*.js",
+            options={'HIDDEN'},
+            )
+    use_mesh_modifiers = BoolProperty(
+            name="Apply Modifiers",
+            description="Apply modifiers",
+            default=True,
+            )
+    use_normals = BoolProperty(
+            name="Write Normals",
+            description="Export one normal per vertex and per face, to represent flat faces and sharp edges",
+            default=False,
+            )
+    global_scale: FloatProperty(
+            name="Scale",
+            min=0.01, max=1000.0,
+            default=150.0,
+            )
+    path_mode = path_reference_mode
+
+    check_extension = True
+    def execute(self, context):
+
+        from . import export_json
+        from mathutils import Matrix
+
+        global_matrix = (Matrix.Scale(self.global_scale, 4) @
+                         axis_conversion(to_forward=self.axis_forward,
+                                         to_up=self.axis_up,
+                                         ).to_4x4())
+
+        export_json.makeTerrain(context,
+            filepath=self.filepath,
+            output_path=context.scene.pbd_prop.json_output_path,
+            use_selection=context.scene.pbd_prop.use_selection,
+            precision=context.scene.pbd_prop.json_precision,
+            compression_level=context.scene.pbd_prop.json_compressed,
+            terrain_matrix=global_matrix,
+            use_mesh_modifiers=self.use_mesh_modifiers,
+            use_normals=(not context.scene.pbd_prop.json_ignore_normals),
+            path_mode=self.path_mode,
+            )
+
+        return {"FINISHED"}
+
+@orientation_helper(axis_forward='Y', axis_up='-Z')
 class ExportFile(bpy.types.Operator, ExportHelper):
     """Save a Wavefront OBJ File with some added features to conform to the PBD engine"""
 
     bl_idname = "export.pbd_file"
     bl_label = 'Export'
-    #bl_options = {'PRESET'}
+    bl_options = {'PRESET'}
 
     filename_ext = ".obj"
     filter_glob = StringProperty(
@@ -53,12 +105,11 @@ class ExportFile(bpy.types.Operator, ExportHelper):
             # ~ default=False,
             # ~ )
 
-
     # extra data group
     use_edges = BoolProperty(
             name="Include Edges",
             description="",
-            default=True,
+            default=False,
             )
     use_smooth_groups = BoolProperty(
             name="Smooth Groups",
@@ -128,7 +179,7 @@ class ExportFile(bpy.types.Operator, ExportHelper):
     global_scale: FloatProperty(
             name="Scale",
             min=0.01, max=1000.0,
-            default=1.0,
+            default=150.0,
             )
 
     path_mode = path_reference_mode
@@ -136,6 +187,8 @@ class ExportFile(bpy.types.Operator, ExportHelper):
     check_extension = True
     def execute(self, context):
 
+        from . import export_json
+        from . import export_obj
         from mathutils import Matrix
         keywords = self.as_keywords(ignore=("axis_forward",
                                             "axis_up",
@@ -143,7 +196,6 @@ class ExportFile(bpy.types.Operator, ExportHelper):
                                             "check_existing",
                                             "filter_glob",
                                             ))
-
 
         keywords["use_selection"] = context.scene.pbd_prop.use_selection
         keywords["use_order"] = context.scene.pbd_prop.use_draw_order
@@ -156,16 +208,15 @@ class ExportFile(bpy.types.Operator, ExportHelper):
 
         keywords["global_matrix"] = global_matrix
 
-        input_path = keywords["filepath"]
         export_obj.save(context, **keywords)
-
         if context.scene.pbd_prop.convert_to_json and len(context.preferences.addons["bracket_io_scene_pbd"].preferences.script_path):
 
-            export_json.save(context,
+            export_json.make(context,
                 export_type=context.scene.pbd_prop.json_export_type,
-                input_path=input_path,
+                input_path=self.filepath,
                 output_path=context.scene.pbd_prop.json_output_path,
                 asset_root=context.scene.pbd_prop.json_asset_root,
+                texture_subdir=context.scene.pbd_prop.json_texture_subdir,
                 script_path=context.preferences.addons["bracket_io_scene_pbd"].preferences.script_path,
                 precision=context.scene.pbd_prop.json_precision,
                 ignore_normals=context.scene.pbd_prop.json_ignore_normals,
@@ -178,11 +229,11 @@ class ExportFile(bpy.types.Operator, ExportHelper):
         return {"FINISHED"}
 
 class ExportJSON(bpy.types.Operator):
-    """Save a JSON File using the input OBJ file instead of the exported scene objects"""
+    """Save a PBD javascript file using the input OBJ file instead of the exported scene objects"""
 
     bl_idname = "export.json_from_obj"
     bl_label = 'Export using existing OBJ'
-    #bl_options = {'PRESET'}
+    bl_options = {'PRESET'}
 
     @classmethod
     def poll(cls, context):
@@ -190,7 +241,7 @@ class ExportJSON(bpy.types.Operator):
 
     def execute(self, context):
 
-        export_json.save(context,
+        export_json.make(context,
             export_type=context.scene.pbd_prop.json_export_type,
             input_path=context.scene.pbd_prop.json_import_path,
             output_path=context.scene.pbd_prop.json_output_path,
@@ -203,15 +254,16 @@ class ExportJSON(bpy.types.Operator):
             force_texture=context.scene.pbd_prop.json_force_texture,
             compression_level=context.scene.pbd_prop.json_compressed,
             addition_option=context.scene.pbd_prop.json_additional_option,
-       )
-
+        )
         return {"FINISHED"}
 
 def register():
     bpy.utils.register_class(ExportFile)
+    bpy.utils.register_class(ExportTerrain)
     bpy.utils.register_class(ExportJSON)
 
 
 def unregister():
     bpy.utils.unregister_class(ExportFile)
+    bpy.utils.unregister_class(ExportTerrain)
     bpy.utils.unregister_class(ExportJSON)
