@@ -52,6 +52,27 @@ class ExportPropObject(bpy.types.PropertyGroup):
         description="This will use only the bounding rectangle of the object created from its meta data for clipping which is a little faster than checking all of the polygons"
         )
 
+    collision_detection = BoolProperty(
+        default=True,
+        description="Use the object as a collision detection object in the PBD engine. This still needs to the checked when using a proxy object as a collsion object"
+        )
+
+    proxy_object = StringProperty(
+        default="",
+        description="Use this object for the collision detection instead of the actuall mesh data. It should have the collision detection box unchecked so that it is not collision detected checked twice."
+        )
+
+    include_normals = BoolProperty(
+        name="Include normals",
+        description="Include lighting normals this object",
+        default=False,
+        )
+
+    terrain_name = StringProperty(
+        default = "",
+        description = "The name of the terrain set to the header model_type",
+        )
+
     cull_face = EnumProperty(items= (('back', 'Cull Back Faces', 'Cull all back facing polygons'),
                                      ('front', 'Cull Front Faces', 'Cull all fron facing polygons'),
                                      ('back_font', 'Cull All Faces', 'Cull both front and back polygons'),
@@ -144,7 +165,6 @@ class ExportPropScene(bpy.types.PropertyGroup):
     json_export_type = EnumProperty(items= (('model', 'Model', 'A standard 3d model for PBD'),
                                              ('widget', 'Widget', 'An orthographic data model for PBD'),
                                              ('font', 'Font', 'A font data model for use with PBD'),
-                                             ('terrain', 'Terrain', 'A terrain data model for use with PBD'),
                                              ),
                                              default = "model"
                                          )
@@ -162,8 +182,13 @@ class ExportPropScene(bpy.types.PropertyGroup):
         description = "The name of the model as a type",
         )
 
+    terrain_object = StringProperty(
+        default = "Terrain object",
+        description = "Object to use as the terrain export data",
+        )
+
     json_precision = IntProperty(
-        name="JSON data precision",
+        name="JS data precision",
         default=5,
         min=1,
         max=16,
@@ -186,8 +211,8 @@ class ExportPropScene(bpy.types.PropertyGroup):
 
     json_ignore_normals = BoolProperty(
             name="Skip lighting normals",
-            description="Do not include lighting normals in the exported js file",
-            default=True,
+            description="Do not include lighting normals in the exported js file for any objects",
+            default=False,
             )
 
     json_include_meta = BoolProperty(

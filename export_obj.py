@@ -160,6 +160,8 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                 fw('d 1\n')  # No alpha
                 fw('illum 2\n')  # light normally
                 fw('display 1\n')
+                fw('collision 1\n')
+                fw('cproxy \n')
                 fw('cull unused\n')
 
 
@@ -465,6 +467,8 @@ def write_file(filepath, objects, depsgraph, scene,
                                 fw('g %s\n' % obnamestring)
 
                             fw('display %d\n' % int(ob.pbd_prop.display))
+                            fw('collision %d\n' % int(ob.pbd_prop.collision_detection))
+                            fw('cproxy %s\n' % str(ob.pbd_prop.proxy_object))
                             fw('cull %s\n' % str(ob.pbd_prop.cull_face))
                             fw('mouseregion %s\n' % str(ob.pbd_prop.mouse_region and (ob.pbd_prop.mouse_bounding and "bounding" or "exact") or "off"))
                             fw('clipregion %s\n' % str(ob.pbd_prop.clip_region and (ob.pbd_prop.clip_bounding and "bounding" or "exact") or "off"))
@@ -510,7 +514,7 @@ def write_file(filepath, objects, depsgraph, scene,
                         subprogress2.step()
 
                         # NORMAL, Smooth/Non smoothed.
-                        if EXPORT_NORMALS:
+                        if ob.pbd_prop.include_normals and EXPORT_NORMALS:
                             no_key = no_val = None
                             normals_to_idx = {}
                             no_get = normals_to_idx.get
@@ -622,7 +626,7 @@ def write_file(filepath, objects, depsgraph, scene,
 
                             fw('f')
                             if faceuv:
-                                if EXPORT_NORMALS:
+                                if ob.pbd_prop.include_normals and EXPORT_NORMALS:
                                     for vi, v, li in f_v:
                                         fw(" %d/%d/%d" % (totverts + v.index,
                                                           totuvco + uv_face_mapping[f_index][vi],

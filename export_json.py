@@ -32,7 +32,7 @@ def ShowMessageBox(message = "", title = "PBD JSON Exporting", icon = 'INFO'):
             self.layout.label(text=m)
     bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
 
-def write_file(context, filepath, objects, depsgraph, scene,
+def write_terrain_file(context, filepath, object, depsgraph, scene,
                EXPORT_APPLY_MODIFIERS=True,
                EXPORT_TERRAIN_MATRIX=None,
                EXPORT_PATH_MODE='AUTO',
@@ -62,162 +62,86 @@ def write_file(context, filepath, objects, depsgraph, scene,
         with open(filepath, "w", encoding="utf8", newline="\n") as f:
             fw = f.write
 
+            progress1.enter_substeps(1)
 
-            #if scene.pbd_prop:
-                #if not scene.pbd_prop.model_type.isspace():
-                    #fw('header_model_type %s\n' % scene.pbd_prop.model_type)
-            totverts = totuvco = totno = 1
-            face_vert_index = 1
-            copy_set = set()
+            obs = [(object, object.matrix_world)]
+            if object.is_instancer:
+                obs += [(dup.instance_object.original, dup.matrix_world.copy())
+                        for dup in depsgraph.object_instances
+                        if dup.parent and dup.parent.original == object]
 
-            s_obj = objects
+            progress1.enter_substeps(len(obs))
+            for ob, ob_mat in obs:
+                with ProgressReportSubstep(progress1, 6) as subprogress2:
+                    uv_unique_count = no_unique_count = 0
 
-            # Get all meshes
-            progress1.enter_substeps(len(objects))
-            for i, ob_main in enumerate(s_obj):
-                # ignore dupli children
-                if ob_main.parent and ob_main.parent.instance_type in {'VERTS', 'FACES'}:
-                    progress1.step("Ignoring %s, dupli child..." % ob_main.name)
-                    continue
+                    ob_for_convert = ob.evaluated_get(depsgraph) if EXPORT_APPLY_MODIFIERS else ob.original
 
-                obs = [(ob_main, ob_main.matrix_world)]
-                if ob_main.is_instancer:
-                    obs += [(dup.instance_object.original, dup.matrix_world.copy())
-                            for dup in depsgraph.object_instances
-                            if dup.parent and dup.parent.original == ob_main]
-                    # ~ print(ob_main.name, 'has', len(obs) - 1, 'dupli children')
+                    try:
+                        me = ob_for_convert.to_mesh()
+                    except RuntimeError:
+                        me = None
 
-                progress1.enter_substeps(len(obs))
-                for ob, ob_mat in obs:
-                    with ProgressReportSubstep(progress1, 6) as subprogress2:
-                        uv_unique_count = no_unique_count = 0
+                    if me is None:
+                        continue
 
-                        ob_for_convert = ob.evaluated_get(depsgraph) if EXPORT_APPLY_MODIFIERS else ob.original
+                    me.transform(EXPORT_TERRAIN_MATRIX @ ob_mat)
+                    # If negative scaling, we have to invert the normals...
+                    if ob_mat.determinant() < 0.0:
+                        me.flip_normals()
 
-                        try:
-                            me = ob_for_convert.to_mesh()
-                        except RuntimeError:
-                            me = None
+                    #me_verts = me.vertices[:]
 
-                        if me is None:
-                            continue
+                    sxfunc = lambda v: v[1].co[0]
+                    szfunc = lambda v: v[1].co[2]
+                    x_verts = [v for v in enumerate(me.vertices)]
+                    z_verts = [v for v in enumerate(me.vertices)]
+                    x_verts.sort(key=sxfunc)
+                    z_verts.sort(key=szfunc)
+                    smallest_x = x_verts[0][1].co[0]
+                    largest_x = x_verts[-1][1].co[0]
 
-                        me.transform(EXPORT_TERRAIN_MATRIX @ ob_mat)
-                        # If negative scaling, we have to invert the normals...
-                        if ob_mat.determinant() < 0.0:
-                            me.flip_normals()
+                    row = round(sqrt( len(me.vertices) ))-1
+                    quad_size = (largest_x-smallest_x)/row
+                    segments = scene.pbd_prop.terrain_segment_count
+                    resolution = round(row/segments)
+                    fw("define([],function(){return{\"header\":{\"model_type\":\"height_map\",")
+                    fw("\"row\":%d,\"column\":%d,\"quad_size\":%s,\"resolution\":%d},\"height_map\":[\n" % (segments, segments, quad_size, resolution))
 
-                        faceuv = False
+                    # Make our own list so it can be sorted to reduce context switching
+                    face_index_pairs = [(face, index) for index, face in enumerate(me.polygons)]
 
-                        #me_verts = me.vertices[:]
-
-                        sxfunc = lambda v: v[1].co[0]
-                        szfunc = lambda v: v[1].co[2]
-
-                        x_verts = [v for v in enumerate(me.vertices)]
-                        z_verts = [v for v in enumerate(me.vertices)]
-                        x_verts.sort(key=sxfunc)
-                        z_verts.sort(key=szfunc)
-                        smallest_x = x_verts[0][1].co[0]
-                        largest_x = x_verts[-1][1].co[0]
-
-                        row = round(sqrt( len(me.vertices) ))-1
-                        quad_size = (largest_x-smallest_x)/row
-                        fw("define([],function(){return{\"header\":{\"model_type\":\"terrain\",")
-                        fw("\"row\":%d,\"column\":%d,\"quad_size\":%s},\"height_map\":[" % (row, row, quad_size))
-
-                        me_verts = []
-                        #me_verts = [v for k,v in ]
-
-                        # Make our own list so it can be sorted to reduce context switching
-                        face_index_pairs = [(face, index) for index, face in enumerate(me.polygons)]
-
-                        if not (len(face_index_pairs) + len(me.vertices)):  # Make sure there is something to write
-                            # clean up
-                            bpy.data.meshes.remove(me)
-                            continue  # dont bother with this mesh.
-
-                        if EXPORT_NORMALS and face_index_pairs:
-                            me.calc_normals_split()
-                            # No need to call me.free_normals_split later, as this mesh is deleted anyway!
-
-                        loops = me.loops
-
-                        smooth_groups_tot = (), 0
-
-                        materials = me.materials[:]
-                        material_names = [m.name if m else None for m in materials]
-
-                        # avoid bad index errors
-                        if not materials:
-                            materials = [None]
-                            material_names = [name_compat(None)]
-
-
-                        # Set the default mat to no material and no image.
-                        contextMat = 0, 0  # Can never be this, so we will label a new material the first chance we get.
-                        contextSmooth = None  # Will either be true or false,  set bad to force initialization switch.
-
-                        name1 = ob.name
-                        subprogress2.step()
-
-                        # Vert
-                        bb = len(x_verts)
-                        bb = round(bb / 2)
-
-                        for a in range(bb):
-                            fw('%.5f,' % (x_verts[a][1].co[1]))
-                            fw('%.5f,' % (z_verts[a][1].co[1]))
-
-                        subprogress2.step()
-
-                        # UV
-                        if faceuv:
-                            # in case removing some of these dont get defined.
-                            uv = f_index = uv_index = uv_key = uv_val = uv_ls = None
-
-                            uv_face_mapping = [None] * len(face_index_pairs)
-
-                            del uv, f_index, uv_index, uv_ls, uv_key, uv_val
-
-                        subprogress2.step()
-
-                        # NORMAL, Smooth/Non smoothed.
-                        if EXPORT_NORMALS:
-                            no_key = no_val = None
-                            normals_to_idx = {}
-                            no_get = normals_to_idx.get
-                            loops_to_normals = [0] * len(loops)
-                            for f, f_index in face_index_pairs:
-                                for l_idx in f.loop_indices:
-                                    no_key = veckey3d(loops[l_idx].normal)
-                                    no_val = no_get(no_key)
-                                    if no_val is None:
-                                        no_val = normals_to_idx[no_key] = no_unique_count
-                                        fw('vn %.4f %.4f %.4f\n' % no_key)
-                                        no_unique_count += 1
-                                    loops_to_normals[l_idx] = no_val
-                            del normals_to_idx, no_get, no_key, no_val
-                        else:
-                            loops_to_normals = []
-
-                        # Make the indices global rather then per mesh
-                        totverts += len(me_verts)
-                        totuvco += uv_unique_count
-                        totno += no_unique_count
-
+                    if not (len(face_index_pairs) + len(me.vertices)):  # Make sure there is something to write
                         # clean up
-                        ob_for_convert.to_mesh_clear()
+                        bpy.data.meshes.remove(me)
+                        continue  # dont bother with this mesh.
+
+                    subprogress2.step()
+
+                    index = 0
+                    for i, zv in z_verts:
+                        index = 0
+                        for w, xv in x_verts:
+                            index += 1
+                            if xv.co[2] == zv.co[2]:
+                                #fw('%.5f %.5f %.5f\n' % (xv.co[:]))
+                                fw('%.5f,' % (xv.co[1]))
+                                break
+                        x_verts.remove(x_verts[index-1])
+
+                    subprogress2.step()
+                    # Make the indices global rather then per mesh
+                    # clean up
+                    ob_for_convert.to_mesh_clear()
 
             fw("]}})")
-            progress1.leave_substeps("Finished writing geometry of '%s'." % ob_main.name)
+            progress1.leave_substeps("Finished writing geometry of '%s'." % object.name)
 
 
 def makeTerrain(context, filepath,
          output_path="",
-         use_selection=False,
+         object_name="",
          precision=5,
-         compression_level=2,
          terrain_matrix=None,
          use_mesh_modifiers=False,
          use_normals=False,
@@ -233,15 +157,19 @@ def makeTerrain(context, filepath,
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
 
-    if use_selection:
-        objects = context.selected_objects
-    else:
-        objects = scene.objects
+    object = scene.objects[object_name]
+    if not object:
+        ShowMessageBox("The terrain exporter must have a proper object set", "Unable to export terrain", 'ERROR')
+        return False
+
+    if object.parent and object.parent.instance_type in {'VERTS', 'FACES'}:
+        ShowMessageBox("The terrain exporter must have a proper object set (is the one set a dupli child?)", "Unable to export terrain", 'ERROR')
+        return False
 
     full_path = ''.join(context_name)
 
     with ProgressReport(context.window_manager) as p:
-        write_file(context, full_path, objects, depsgraph, scene,
+        write_terrain_file(context, full_path, object, depsgraph, scene,
                    EXPORT_APPLY_MODIFIERS=use_mesh_modifiers,
                    EXPORT_PATH_MODE=path_mode,
                    EXPORT_TERRAIN_MATRIX=terrain_matrix,

@@ -50,6 +50,7 @@ class ExportTerrain(bpy.types.Operator, ExportHelper):
             min=0.01, max=1000.0,
             default=150.0,
             )
+
     path_mode = path_reference_mode
 
     check_extension = True
@@ -66,9 +67,8 @@ class ExportTerrain(bpy.types.Operator, ExportHelper):
         export_json.makeTerrain(context,
             filepath=self.filepath,
             output_path=context.scene.pbd_prop.json_output_path,
-            use_selection=context.scene.pbd_prop.use_selection,
+            object_name=context.scene.pbd_prop.terrain_object,
             precision=context.scene.pbd_prop.json_precision,
-            compression_level=context.scene.pbd_prop.json_compressed,
             terrain_matrix=global_matrix,
             use_mesh_modifiers=self.use_mesh_modifiers,
             use_normals=(not context.scene.pbd_prop.json_ignore_normals),
