@@ -89,26 +89,26 @@ class ExportPropObject(bpy.types.PropertyGroup):
         description="Draw the material when rendering in the PBD engine. This can still be used as a mouse detection region however"
         )
 
-def get_terrain_sqrt(key, self, context):
+def get_terrain_sqrt():
     """ Get the nearest square root of the terrain """
 
-    deps = context.evaluated_depsgraph_get()
-    val = self[key]
-    v = 1
-    ob_name = context.scene.pbd_prop.terrain_object
+    deps = bpy.context.evaluated_depsgraph_get()
+    ob_name = bpy.context.scene.pbd_prop.terrain_object
     if ob_name:
-        t = context.scene.objects[ob_name]
+        t = bpy.context.scene.objects[ob_name]
         if t:
+            item = []
             ob = t.evaluated_get(deps)
             c = round(sqrt(len(ob.data.vertices)))-1
             while c >= 2:
-                if c >= val:
-                    v = c
-                else:
-                    break
+                item.append((c, c))
                 c = int(c/2)
+            item.append((1,1))
+            #self[key].items = item
+            return item
 
-            self[key] = int(v)
+    else:
+        return []
 
 def make_path_absolute(key):
     """ Prevent Blender's relative paths of doom """
@@ -171,12 +171,10 @@ class ExportPropScene(bpy.types.PropertyGroup):
                                              ),
                                              default = "model"
                                          )
-    terrain_segment_count = IntProperty(
+
+    #terrain_segment_count = EnumProperty(items = get_terrain_sqrt,
+    terrain_segment_count = EnumProperty(items = [('1', 'aa', 'fdf')],
         name="Segment count",
-        default=1,
-        min=1,
-        max=100000,
-        update = lambda s,c: get_terrain_sqrt('terrain_segment_count', s, c),
         description="The amount of world segments which will be created when the terrain is imported into the engine",
         )
 

@@ -73,7 +73,8 @@ class PBDPanel(bpy.types.Panel):
         box = layout.box()
         box.label(text="Terrain Height Map Exporting")
         col = box.column()
-        col.prop(context.scene.pbd_prop, "terrain_segment_count", text="Number of segments")
+        #col.prop(context.scene.pbd_prop, "terrain_segment_count", text="Number of segments")
+        col.prop(context.scene.pbd_prop, "terrain_segment_count", expand=True, emboss=True)
         box.prop_search(context.scene.pbd_prop, "terrain_object",  context.scene, "objects", text="Terrain object")
         if context.active_object is not None:
             col.prop(context.active_object.pbd_prop, "terrain_name", text="Terrain name")
