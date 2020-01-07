@@ -91,21 +91,24 @@ class ExportPropObject(bpy.types.PropertyGroup):
 
 def get_terrain_sqrt(key, self, context):
     """ Get the nearest square root of the terrain """
-    t = context.active_object
-    props = context.scene.pbd_prop
-    val = int(props[key])
+
+    deps = context.evaluated_depsgraph_get()
+    val = self[key]
     v = 1
+    ob_name = context.scene.pbd_prop.terrain_object
+    if ob_name:
+        t = context.scene.objects[ob_name]
+        if t:
+            ob = t.evaluated_get(deps)
+            c = round(sqrt(len(ob.data.vertices)))-1
+            while c >= 2:
+                if c >= val:
+                    v = c
+                else:
+                    break
+                c = int(c/2)
 
-    if t:
-        c = round(sqrt(len(t.data.vertices)))-1
-        while c >= 2:
-            if c >= val:
-                v = c
-            else:
-                break
-            c = int(c/2)
-
-        props[key] = int(v)
+            self[key] = int(v)
 
 def make_path_absolute(key):
     """ Prevent Blender's relative paths of doom """

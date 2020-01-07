@@ -90,23 +90,17 @@ def write_terrain_file(context, filepath, object, depsgraph, scene,
                     if ob_mat.determinant() < 0.0:
                         me.flip_normals()
 
-                    #me_verts = me.vertices[:]
+                    x_verts = [v for q,v in enumerate(me.vertices)]
+                    x_verts.sort(key=lambda v: v.co[0])
+                    smallest_x = x_verts[0].co[0]
+                    largest_x = x_verts[-1].co[0]
 
-                    sxfunc = lambda v: v[1].co[0]
-                    szfunc = lambda v: v[1].co[2]
-                    x_verts = [v for v in enumerate(me.vertices)]
-                    z_verts = [v for v in enumerate(me.vertices)]
-                    x_verts.sort(key=sxfunc)
-                    z_verts.sort(key=szfunc)
-                    smallest_x = x_verts[0][1].co[0]
-                    largest_x = x_verts[-1][1].co[0]
-
-                    row = round(sqrt( len(me.vertices) ))-1
-                    quad_size = (largest_x-smallest_x)/row
+                    resolution = round(sqrt( len(me.vertices) ))-1
+                    quad_size = (largest_x-smallest_x)/resolution
                     segments = scene.pbd_prop.terrain_segment_count
-                    resolution = round(row/segments)
+                    resolution /= segments
                     fw("define([],function(){return{\"header\":{\"model_type\":\"height_map\",")
-                    fw("\"row\":%d,\"column\":%d,\"quad_size\":%s,\"resolution\":%d},\"height_map\":[\n" % (segments, segments, quad_size, resolution))
+                    fw("\"row\":%d,\"column\":%d,\"quad_size\":%.5f,\"resolution\":%d},\"height_map\":[" % (segments, segments, quad_size, resolution))
 
                     # Make our own list so it can be sorted to reduce context switching
                     face_index_pairs = [(face, index) for index, face in enumerate(me.polygons)]
@@ -118,16 +112,11 @@ def write_terrain_file(context, filepath, object, depsgraph, scene,
 
                     subprogress2.step()
 
-                    index = 0
-                    for i, zv in z_verts:
-                        index = 0
-                        for w, xv in x_verts:
-                            index += 1
-                            if xv.co[2] == zv.co[2]:
-                                #fw('%.5f %.5f %.5f\n' % (xv.co[:]))
-                                fw('%.5f,' % (xv.co[1]))
-                                break
-                        x_verts.remove(x_verts[index-1])
+                    sfunc = lambda v: ( round(v.co[2]*10)/10, round(v.co[0]*10)/10 )
+                    verts = [v for q,v in enumerate(me.vertices)]
+                    verts.sort(key=sfunc)
+                    for vv in verts:
+                        fw('%.4f,' % (vv.co[1]))
 
                     subprogress2.step()
                     # Make the indices global rather then per mesh
