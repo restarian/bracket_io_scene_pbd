@@ -25,7 +25,7 @@ from bpy_extras.wm_utils.progress_report import (
     ProgressReportSubstep,
 )
 
-def ShowMessageBox(message = "", title = "PBD JSON Exporting", icon = 'INFO'):
+def ShowMessageBox(message = "", title = "PBD Javascript Exporting", icon = 'INFO'):
     message = str(message).replace("\\t", "   ").replace("\t", "   ").replace("\\n", "\n")
     def draw(self, context):
         for m in message.splitlines():
@@ -97,9 +97,10 @@ def write_terrain_file(context, filepath, object, depsgraph, scene,
 
                     resolution = round(sqrt( len(me.vertices) ))-1
                     quad_size = (largest_x-smallest_x)/resolution
-                    segments = scene.pbd_prop.terrain_segment_count
+                    segments = int(scene.pbd_prop.terrain_segment_count)
+                    model_type = str(scene.pbd_prop.terrain_name)
                     resolution /= segments
-                    fw("define([],function(){return{\"header\":{\"model_type\":\"height_map\",")
+                    fw("define([],function(){return{\"header\":{\"model_type\":\"%s\"," % (model_type))
                     fw("\"row\":%d,\"column\":%d,\"quad_size\":%.5f,\"resolution\":%d},\"height_map\":[" % (segments, segments, quad_size, resolution))
 
                     # Make our own list so it can be sorted to reduce context switching
@@ -222,9 +223,9 @@ def make(context,
     print(param)
     compleated = subprocess.run(param, timeout=12, capture_output=True)
 
-    if not compleated.stderr.isspace():
-        ShowMessageBox(compleated.stderr, "Unable to run obj to json script", "ERROR")
+    if len(compleated.stderr.decode("UTF-8")):
+        ShowMessageBox(compleated.stderr.decode("UTF-8"), "Unable to run obj to json script", "ERROR")
         return False
 
-    ShowMessageBox(compleated.stdout, "Batten mesh output", "INFO")
+    ShowMessageBox(compleated.stdout.decode("UTF-8"), "Batten mesh output", "INFO")
     return True

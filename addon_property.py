@@ -65,12 +65,7 @@ class ExportPropObject(bpy.types.PropertyGroup):
     include_normals = BoolProperty(
         name="Include normals",
         description="Include lighting normals this object",
-        default=False,
-        )
-
-    terrain_name = StringProperty(
-        default = "",
-        description = "The name of the terrain set to the header model_type",
+        default=True,
         )
 
     cull_face = EnumProperty(items= (('back', 'Cull Back Faces', 'Cull all back facing polygons'),
@@ -89,26 +84,6 @@ class ExportPropObject(bpy.types.PropertyGroup):
         description="Draw the material when rendering in the PBD engine. This can still be used as a mouse detection region however"
         )
 
-def get_terrain_sqrt():
-    """ Get the nearest square root of the terrain """
-
-    deps = bpy.context.evaluated_depsgraph_get()
-    ob_name = bpy.context.scene.pbd_prop.terrain_object
-    if ob_name:
-        t = bpy.context.scene.objects[ob_name]
-        if t:
-            item = []
-            ob = t.evaluated_get(deps)
-            c = round(sqrt(len(ob.data.vertices)))-1
-            while c >= 2:
-                item.append((c, c))
-                c = int(c/2)
-            item.append((1,1))
-            #self[key].items = item
-            return item
-
-    else:
-        return []
 
 def make_path_absolute(key):
     """ Prevent Blender's relative paths of doom """
@@ -117,6 +92,24 @@ def make_path_absolute(key):
 
     if key in props and props[key].startswith('//'):
         props[key] = sane_path(props[key])
+
+def get_terrain_sqrt(key, self, context):
+    """ Get the square roots of the terrain """
+
+    item = []
+    deps = context.evaluated_depsgraph_get()
+    ob_name = context.scene.pbd_prop.terrain_object
+    if ob_name:
+        t = context.scene.objects[ob_name]
+        if t:
+            ob = t.evaluated_get(deps)
+            c = round(sqrt(len(ob.data.vertices)))-1
+            for i in range(1, c + 1):
+                if c % i == 0:
+                    item.append((str(c/i), "( "+str(i) +" X "+str(i) + " )  " + str(round(c/i))+" total segments", "Rows and colums") )
+            item.append(("1", "( 1 X 1 )  "+str(c)+" total segments", "Rows and colums" ))
+
+    return item
 
 class ExportPropScene(bpy.types.PropertyGroup):
 
@@ -154,11 +147,6 @@ class ExportPropScene(bpy.types.PropertyGroup):
             default=False,
             )
 
-    display_conversion = BoolProperty(
-            description="Show the json file exporting options",
-            default=False,
-            )
-
     convert_to_json = BoolProperty(
             name="Output javscrtipt file",
             description="Write out a javascript file which conforms to the PBD standards when exporting",
@@ -172,10 +160,10 @@ class ExportPropScene(bpy.types.PropertyGroup):
                                              default = "model"
                                          )
 
-    #terrain_segment_count = EnumProperty(items = get_terrain_sqrt,
-    terrain_segment_count = EnumProperty(items = [('1', 'aa', 'fdf')],
-        name="Segment count",
-        description="The amount of world segments which will be created when the terrain is imported into the engine",
+    terrain_segment_count = EnumProperty(
+        name="Rows and columns",
+        description="The amount of world segments which will be created when the terrain is imported into the engine.",
+        items=lambda s,c: get_terrain_sqrt("terrain_segment_count", s, c),
         )
 
     model_type = StringProperty(
@@ -184,7 +172,7 @@ class ExportPropScene(bpy.types.PropertyGroup):
         )
 
     terrain_object = StringProperty(
-        default = "Terrain object",
+        name = "Terrain object",
         description = "Object to use as the terrain export data",
         )
 
@@ -268,6 +256,12 @@ class ExportPropScene(bpy.types.PropertyGroup):
             update = lambda s,c: make_path_absolute('json_import_path'),
             subtype='FILE_PATH'
             )
+
+    terrain_name = StringProperty(
+        default = "",
+        description = "The name of the terrain set to the header model_type",
+        )
+
 
 def register():
 
