@@ -1,5 +1,5 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
+    # ##### BEGIN GPL LICENSE BLOCK #####
+    #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
 #  as published by the Free Software Foundation; either version 2
@@ -35,7 +35,6 @@ def ShowMessageBox(message = "", title = "PBD Javascript Exporting", icon = 'INF
 def write_terrain_file(context, filepath, object, depsgraph, scene,
                EXPORT_APPLY_MODIFIERS=True,
                EXPORT_TERRAIN_MATRIX=None,
-               EXPORT_PATH_MODE='AUTO',
                EXPORT_NORMALS=False,
                progress=ProgressReport(),
                ):
@@ -73,7 +72,6 @@ def write_terrain_file(context, filepath, object, depsgraph, scene,
             progress1.enter_substeps(len(obs))
             for ob, ob_mat in obs:
                 with ProgressReportSubstep(progress1, 6) as subprogress2:
-                    uv_unique_count = no_unique_count = 0
 
                     ob_for_convert = ob.evaluated_get(depsgraph) if EXPORT_APPLY_MODIFIERS else ob.original
 
@@ -90,17 +88,19 @@ def write_terrain_file(context, filepath, object, depsgraph, scene,
                     if ob_mat.determinant() < 0.0:
                         me.flip_normals()
 
-                    x_verts = [v for q,v in enumerate(me.vertices)]
-                    x_verts.sort(key=lambda v: v.co[0])
-                    smallest_x = x_verts[0].co[0]
-                    largest_x = x_verts[-1].co[0]
+                    sfunc = lambda v: ( round(v.co[2]*10)/10, round(v.co[0]*10)/10 )
+                    verts = [v for q,v in enumerate(me.vertices)]
+
+                    verts.sort(key=sfunc)
+                    smallest_x = verts[0].co[0]
+                    largest_x = verts[-1].co[0]
 
                     resolution = round(sqrt( len(me.vertices) ))-1
                     quad_size = (largest_x-smallest_x)/resolution
-                    segments = int(scene.pbd_prop.terrain_segment_count)
-                    model_type = str(scene.pbd_prop.terrain_name)
+                    segments = round(float(ob_for_convert.pbd_prop.terrain_segment_count))
+                    model_name = str(ob_for_convert.pbd_prop.terrain_name) or "blender_exported_terrain"
                     resolution /= segments
-                    fw("define([],function(){return{\"header\":{\"model_type\":\"%s\"," % (model_type))
+                    fw("define([],function(){return{\"header\":{\"type\": \"terrain\", \"name\":\"%s\"," % (model_name))
                     fw("\"row\":%d,\"column\":%d,\"quad_size\":%.5f,\"resolution\":%d},\"height_map\":[" % (segments, segments, quad_size, resolution))
 
                     # Make our own list so it can be sorted to reduce context switching
@@ -113,9 +113,6 @@ def write_terrain_file(context, filepath, object, depsgraph, scene,
 
                     subprogress2.step()
 
-                    sfunc = lambda v: ( round(v.co[2]*10)/10, round(v.co[0]*10)/10 )
-                    verts = [v for q,v in enumerate(me.vertices)]
-                    verts.sort(key=sfunc)
                     for vv in verts:
                         fw('%.4f,' % (vv.co[1]))
 
@@ -135,7 +132,6 @@ def makeTerrain(context, filepath,
          terrain_matrix=None,
          use_mesh_modifiers=False,
          use_normals=False,
-         path_mode='AUTO',
          ):
 
     base_name, ext = os.path.splitext(filepath)
@@ -161,7 +157,6 @@ def makeTerrain(context, filepath,
     with ProgressReport(context.window_manager) as p:
         write_terrain_file(context, full_path, object, depsgraph, scene,
                    EXPORT_APPLY_MODIFIERS=use_mesh_modifiers,
-                   EXPORT_PATH_MODE=path_mode,
                    EXPORT_TERRAIN_MATRIX=terrain_matrix,
                    EXPORT_NORMALS=use_normals,
                    progress=p
@@ -176,11 +171,13 @@ def make(context,
          script_path="",
          precision=5,
          ignore_normals=True,
+         ignore_uv=True,
          include_meta=True,
          force_texture=True,
          compression_level=2,
          addition_option="",
          ):
+
 
     if not script_path:
         ShowMessageBox("The obj to js conversion script path is not set in the addon preferences", "Cannot export json", 'ERROR')
@@ -190,6 +187,9 @@ def make(context,
 
     if ignore_normals:
         param.append("-z")
+
+    if ignore_uv:
+        param.append("-y")
 
     if force_texture:
         param.append("-f")
@@ -203,6 +203,7 @@ def make(context,
     if export_type == "widget":
         param.append("--shift-origin")
         param.append("0,span,0")
+
     elif export_type == "font":
         param.append("--set-origin")
         param.append("0,null,0")
@@ -220,11 +221,10 @@ def make(context,
     if addition_option:
         param += addition_option.split()
 
-    print(param)
     compleated = subprocess.run(param, timeout=12, capture_output=True)
 
-    if len(compleated.stderr.decode("UTF-8")):
-        ShowMessageBox(compleated.stderr.decode("UTF-8"), "Unable to run obj to json script", "ERROR")
+    if len(compleated.stderr.decode("UTF-8").strip()):
+        ShowMessageBox(compleated.stderr.decode("UTF-8"), "Unable to run obj to javascript script", "ERROR")
         return False
 
     ShowMessageBox(compleated.stdout.decode("UTF-8"), "Batten mesh output", "INFO")

@@ -44,7 +44,7 @@ def mesh_triangulate(me):
     bm.free()
 
 
-def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
+def write_mtl(scene, filepath, copy_set, mtl_dict):
     world = scene.world
     world_amb = Color((0.8, 0.8, 0.8))
 
@@ -136,8 +136,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                     if image is None:
                         continue
 
-                    filepath = io_utils.path_reference(image.filepath, source_dir, dest_dir,
-                                                       path_mode, "", copy_set, image.library)
+                    filepath = io_utils.path_reference(image.filepath, source_dir, dest_dir, "ABSOLUTE", "", copy_set, image.library)
                     options = []
                     if key == "map_Bump":
                         if mat_wrap.normalmap_strength != 1.0:
@@ -160,7 +159,9 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                 fw('d 1\n')  # No alpha
                 fw('illum 2\n')  # light normally
                 fw('display 1\n')
-                fw('collision 1\n')
+                fw('collision off\n')
+                fw('mouseregion off\n')
+                fw('clipregion off\n')
                 fw('cproxy \n')
                 fw('cull unused\n')
 
@@ -260,7 +261,6 @@ def write_file(filepath, objects, depsgraph, scene,
                EXPORT_POLYGROUPS=False,
                EXPORT_CURVE_AS_NURBS=True,
                EXPORT_GLOBAL_MATRIX=None,
-               EXPORT_PATH_MODE='AUTO',
                progress=ProgressReport(),
                ):
     """
@@ -306,9 +306,10 @@ def write_file(filepath, objects, depsgraph, scene,
             fw('# PBD exported Blender v%s OBJ File: %r\n' % (bpy.app.version_string, os.path.basename(bpy.data.filepath)))
             fw('# www.blender.org\n')
 
-            if scene.pbd_prop:
-                if not scene.pbd_prop.model_type.isspace():
-                    fw('header_model_type %s\n' % scene.pbd_prop.model_type)
+            fw('header_type %s\n' % scene.pbd_prop.json_export_type)
+            if len(scene.pbd_prop.model_name.strip()):
+                fw('header_name %s\n' % scene.pbd_prop.model_name)
+
 
             # Tell the obj file what material file to use.
             if EXPORT_MTL:
@@ -355,6 +356,11 @@ def write_file(filepath, objects, depsgraph, scene,
                 for ob, ob_mat in obs:
                     with ProgressReportSubstep(subprogress1, 6) as subprogress2:
                         uv_unique_count = no_unique_count = 0
+
+                        #corralate_terrain=scene.pbd_prop.corralate_terrain_name
+                        #if scene.pbd_prop.corralate_model_terrain and len(corralate_terrain):
+                            #if ob.name == corralate_terrain:
+                                #continue
 
                         # Nurbs curve support
                         if EXPORT_CURVE_AS_NURBS and test_nurbs_compat(ob):
@@ -467,11 +473,11 @@ def write_file(filepath, objects, depsgraph, scene,
                                 fw('g %s\n' % obnamestring)
 
                             fw('display %d\n' % int(ob.pbd_prop.display))
-                            fw('collision %d\n' % int(ob.pbd_prop.collision_detection))
                             fw('cproxy %s\n' % str(ob.pbd_prop.proxy_object))
                             fw('cull %s\n' % str(ob.pbd_prop.cull_face))
                             fw('mouseregion %s\n' % str(ob.pbd_prop.mouse_region and (ob.pbd_prop.mouse_bounding and "bounding" or "exact") or "off"))
                             fw('clipregion %s\n' % str(ob.pbd_prop.clip_region and (ob.pbd_prop.clip_bounding and "bounding" or "exact") or "off"))
+                            fw('collision %s\n' % str(ob.pbd_prop.collision_detection and (ob.pbd_prop.collision_bounding and "bounding" or "exact") or "off"))
 
                         subprogress2.step()
 
@@ -673,7 +679,7 @@ def write_file(filepath, objects, depsgraph, scene,
 
         # Now we have all our materials, save them
         if EXPORT_MTL:
-            write_mtl(scene, mtlfilepath, EXPORT_PATH_MODE, copy_set, mtl_dict)
+            write_mtl(scene, mtlfilepath, copy_set, mtl_dict)
 
         # copy all collected files.
         io_utils.path_reference_copy(copy_set)
@@ -699,7 +705,6 @@ def _write(context, filepath,
            EXPORT_SEL_ONLY,  # ok
            EXPORT_ANIMATION,
            EXPORT_GLOBAL_MATRIX,
-           EXPORT_PATH_MODE,  # Not used
            ):
 
     with ProgressReport(context.window_manager) as progress:
@@ -733,6 +738,16 @@ def _write(context, filepath,
             else:
                 objects = scene.objects
 
+            corralate_terrain=scene.pbd_prop.corralate_terrain_name
+            if scene.pbd_prop.corralate_model_terrain and len(corralate_terrain):
+                c_ob = scene.objects[corralate_terrain]
+                for obj in objects:
+                    if obj.name == c_ob.name:
+                        continue
+                    obj.location[0] += c_ob.location[0]
+                    obj.location[1] += c_ob.location[1]
+                    obj.location[2] += c_ob.location[2]
+
             full_path = ''.join(context_name)
 
             # erm... bit of a problem here, this can overwrite files when exporting frames. not too bad.
@@ -756,11 +771,18 @@ def _write(context, filepath,
                        EXPORT_POLYGROUPS,
                        EXPORT_CURVE_AS_NURBS,
                        EXPORT_GLOBAL_MATRIX,
-                       EXPORT_PATH_MODE,
                        progress,
                        )
             progress.leave_substeps()
 
+            if scene.pbd_prop.corralate_model_terrain and len(corralate_terrain):
+                c_ob = scene.objects[corralate_terrain]
+                for obj in objects:
+                    if obj.name == c_ob.name:
+                        continue
+                    obj.location[0] -= c_ob.location[0]
+                    obj.location[1] -= c_ob.location[1]
+                    obj.location[2] -= c_ob.location[2]
         scene.frame_set(orig_frame, subframe=0.0)
         progress.leave_substeps()
 
@@ -776,9 +798,9 @@ def save(context,
          filepath,
          *,
          use_order=True,
-         use_triangles=False,
-         use_edges=True,
-         use_normals=False,
+         use_triangles=True,
+         use_edges=False,
+         use_normals=True,
          use_smooth_groups=False,
          use_smooth_groups_bitflags=False,
          use_uvs=True,
@@ -790,11 +812,10 @@ def save(context,
          group_by_material=False,
          keep_vertex_order=False,
          use_vertex_groups=False,
-         use_nurbs=True,
+         use_nurbs=False,
          use_selection=True,
          use_animation=False,
          global_matrix=None,
-         path_mode='AUTO'
          ):
 
     _write(context, filepath,
@@ -817,7 +838,6 @@ def save(context,
            EXPORT_SEL_ONLY=use_selection,
            EXPORT_ANIMATION=use_animation,
            EXPORT_GLOBAL_MATRIX=global_matrix,
-           EXPORT_PATH_MODE=path_mode,
            )
 
     return {'FINISHED'}

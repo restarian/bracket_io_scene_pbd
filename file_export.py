@@ -20,9 +20,8 @@
 
 import bpy
 from bpy.props import ( BoolProperty, FloatProperty, StringProperty, EnumProperty, IntProperty )
-from bpy_extras.io_utils import ( ExportHelper, ImportHelper, orientation_helper, path_reference_mode, axis_conversion )
+from bpy_extras.io_utils import ( ExportHelper, axis_conversion )
 
-@orientation_helper(axis_forward='Y', axis_up='-Z')
 class ExportTerrain(bpy.types.Operator, ExportHelper):
     """Save a terrain file which conforms to the PBD engine"""
 
@@ -35,49 +34,33 @@ class ExportTerrain(bpy.types.Operator, ExportHelper):
             default="*.js",
             options={'HIDDEN'},
             )
-    use_mesh_modifiers = BoolProperty(
-            name="Apply Modifiers",
-            description="Apply modifiers",
-            default=True,
-            )
-    use_normals = BoolProperty(
-            name="Write Normals",
-            description="Export one normal per vertex and per face, to represent flat faces and sharp edges",
-            default=False,
-            )
-    global_scale: FloatProperty(
-            name="Scale",
-            min=0.01, max=1000.0,
-            default=150.0,
-            )
-
-    path_mode = path_reference_mode
 
     check_extension = True
+
     def execute(self, context):
 
         from . import export_json
         from mathutils import Matrix
 
-        global_matrix = (Matrix.Scale(self.global_scale, 4) @
-                         axis_conversion(to_forward=self.axis_forward,
-                                         to_up=self.axis_up,
-                                         ).to_4x4())
+        global_matrix = (Matrix.Scale(context.scene.pbd_prop.world_scale, 4) @ axis_conversion(to_forward="Y", to_up="-Z", ).to_4x4())
+
+        if context.scene.pbd_prop.terrain_use_active_object:
+            terrain_obj = context.active_object
+        else:
+            terrain_obj = context.scene.objects[context.scene.pbd_prop.terrain_object.strip()]
 
         export_json.makeTerrain(context,
             filepath=self.filepath,
             output_path=context.scene.pbd_prop.json_output_path,
-            object_name=context.scene.pbd_prop.terrain_object,
+            object_name=terrain_obj.name,
             precision=context.scene.pbd_prop.json_precision,
             terrain_matrix=global_matrix,
-            use_mesh_modifiers=self.use_mesh_modifiers,
-            use_normals=(not context.scene.pbd_prop.json_ignore_normals),
-            path_mode=self.path_mode,
+            use_mesh_modifiers=context.scene.pbd_prop.terrain_use_mesh_modifiers,
+            use_normals=context.scene.pbd_prop.terrain_use_normals,
             )
 
         return {"FINISHED"}
 
-@orientation_helper(axis_forward='Y', axis_up='-Z')
 class ExportFile(bpy.types.Operator, ExportHelper):
     """Save a Wavefront OBJ File with some added features to conform to the PBD engine"""
 
@@ -91,122 +74,22 @@ class ExportFile(bpy.types.Operator, ExportHelper):
             options={'HIDDEN'},
             )
 
-    # object group
-    use_mesh_modifiers = BoolProperty(
-            name="Apply Modifiers",
-            description="Apply modifiers",
-            default=True,
-            )
-
-    # Non working in Blender 2.8 currently.
-    # ~ use_mesh_modifiers_render: BoolProperty(
-            # ~ name="Use Modifiers Render Settings",
-            # ~ description="Use render settings when applying modifiers to mesh objects",
-            # ~ default=False,
-            # ~ )
-
-    # extra data group
-    use_edges = BoolProperty(
-            name="Include Edges",
-            description="",
-            default=False,
-            )
-    use_smooth_groups = BoolProperty(
-            name="Smooth Groups",
-            description="Write sharp edges as smooth groups",
-            default=False,
-            )
-    use_smooth_groups_bitflags = BoolProperty(
-            name="Bitflag Smooth Groups",
-            description="Same as 'Smooth Groups', but generate smooth groups IDs as bitflags "
-                        "(produces at most 32 different smooth groups, usually much less)",
-            default=False,
-            )
-    use_normals = BoolProperty(
-            name="Write Normals",
-            description="Export one normal per vertex and per face, to represent flat faces and sharp edges",
-            default=True,
-            )
-    use_uvs = BoolProperty(
-            name="Include UVs",
-            description="Write out the active UV coordinates",
-            default=True,
-            )
-    use_materials = BoolProperty(
-            name="Write Materials",
-            description="Write out the MTL file",
-            default=True,
-            )
-    use_triangles: BoolProperty(
-            name="Triangulate Faces",
-            description="Convert all faces to triangles",
-            default=True,
-            )
-    use_nurbs: BoolProperty(
-            name="Write Nurbs",
-            description="Write nurbs curves as OBJ nurbs rather than "
-                        "converting to geometry",
-            default=False,
-            )
-    use_vertex_groups: BoolProperty(
-            name="Polygroups",
-            description="",
-            default=False,
-            )
-
-    # grouping group
-    use_blen_objects: BoolProperty(
-            name="Objects as OBJ Objects",
-            description="",
-            default=True,
-            )
-    group_by_object: BoolProperty(
-            name="Objects as OBJ Groups ",
-            description="",
-            default=False,
-            )
-    group_by_material: BoolProperty(
-            name="Material Groups",
-            description="",
-            default=False,
-            )
-    keep_vertex_order: BoolProperty(
-            name="Keep Vertex Order",
-            description="",
-            default=False,
-            )
-
-    global_scale: FloatProperty(
-            name="Scale",
-            min=0.01, max=1000.0,
-            default=150.0,
-            )
-
-    path_mode = path_reference_mode
-
     check_extension = True
     def execute(self, context):
 
         from . import export_json
         from . import export_obj
         from mathutils import Matrix
-        keywords = self.as_keywords(ignore=("axis_forward",
-                                            "axis_up",
-                                            "global_scale",
-                                            "check_existing",
-                                            "filter_glob",
-                                            ))
 
+        global_matrix = (Matrix.Scale(context.scene.pbd_prop.world_scale, 4) @ axis_conversion(to_forward="Y", to_up="-Z", ).to_4x4())
+
+        keywords = {}
+        keywords["global_matrix"] = global_matrix
         keywords["use_selection"] = context.scene.pbd_prop.use_selection
         keywords["use_order"] = context.scene.pbd_prop.use_draw_order
         keywords["use_animation"] = context.scene.pbd_prop.use_animation
-
-        global_matrix = (Matrix.Scale(self.global_scale, 4) @
-                         axis_conversion(to_forward=self.axis_forward,
-                                         to_up=self.axis_up,
-                                         ).to_4x4())
-
-        keywords["global_matrix"] = global_matrix
+        keywords["use_mesh_modifiers"] = context.scene.pbd_prop.model_use_mesh_modifiers
+        keywords["filepath"] = self.filepath
 
         export_obj.save(context, **keywords)
         if context.scene.pbd_prop.convert_to_json and len(context.preferences.addons["bracket_io_scene_pbd"].preferences.script_path):
@@ -220,6 +103,7 @@ class ExportFile(bpy.types.Operator, ExportHelper):
                 script_path=context.preferences.addons["bracket_io_scene_pbd"].preferences.script_path,
                 precision=context.scene.pbd_prop.json_precision,
                 ignore_normals=context.scene.pbd_prop.json_ignore_normals,
+                ignore_uv=context.scene.pbd_prop.json_ignore_uv_map,
                 include_meta=context.scene.pbd_prop.json_include_meta,
                 force_texture=context.scene.pbd_prop.json_force_texture,
                 compression_level=context.scene.pbd_prop.json_compressed,
