@@ -172,7 +172,7 @@ def make(context,
          precision=5,
          ignore_normals=True,
          ignore_uv=True,
-         include_meta=True,
+         ignore_meta=True,
          force_texture=True,
          compression_level=2,
          addition_option="",
@@ -194,7 +194,7 @@ def make(context,
     if force_texture:
         param.append("-f")
 
-    if include_meta:
+    if not ignore_meta:
         param.append("-m")
 
     param.append("--compression-level")

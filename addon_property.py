@@ -1,104 +1,6 @@
 import bpy, os
 from math import sqrt
-from bpy.props import ( EnumProperty, BoolProperty, FloatProperty, StringProperty, EnumProperty, IntProperty )
-
-def ShowMessageBox(message = "", title = "Terrain Verification", icon = 'INFO'):
-    message = str(message).replace("\\t", "   ").replace("\t", "   ").replace("\\n", "\n")
-    def draw(self, context):
-        for m in message.splitlines():
-            self.layout.label(text=m)
-    bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
-
-class CreateTerrain(bpy.types.Operator):
-    """Create a simple terrain starting plane with the correct orientation"""
-
-    bl_idname = "terrain.create_starting"
-    bl_label = 'Create Starting Terrain'
-    bl_options = {'PRESET'}
-
-    def execute(self, context):
-
-        return {"FINISHED"}
-
-def r(num):
-    return round(num*10)/10
-
-
-class VerifyTerrain(bpy.types.Operator):
-    """Create a simple terrain starting plane with the correct orientation"""
-
-    bl_idname = "terrain.verify"
-    bl_label = 'Error Check Terrain'
-    bl_options = {'PRESET'}
-
-    def execute(self, context):
-
-        if context.scene.pbd_prop.terrain_use_active_object:
-            terrain_obj = context.active_object
-        else:
-            terrain_obj = context.scene.objects[context.scene.pbd_prop.terrain_object.strip()]
-
-        depsgraph = context.evaluated_depsgraph_get()
-        ob_for_convert = terrain_obj.evaluated_get(depsgraph) if context.scene.pbd_prop.terrain_use_mesh_modifiers else terrain_obj.original
-
-        try:
-            me = ob_for_convert.to_mesh()
-        except RuntimeError:
-            ShowMessageBox("An improper terrain object is in use", "Terrain has errors", "ERROR")
-            return {"FINISHED"}
-
-        ob_matrix = ob_for_convert.matrix_world
-
-        from mathutils import Matrix
-        from bpy_extras.io_utils import axis_conversion
-        global_matrix = (Matrix.Scale(context.scene.pbd_prop.world_scale, 4) @ axis_conversion(to_forward="Y", to_up="-Z", ).to_4x4())
-        me.transform(global_matrix @ ob_matrix)
-
-        # If negative scaling, we have to invert the normals...
-        if ob_matrix.determinant() < 0.0:
-            me.flip_normals()
-
-        sfunc = lambda v: ( r(v.co[2]), r(v.co[0]) )
-        verts = [v for q,v in enumerate(me.vertices)]
-        verts.sort(key=sfunc)
-        smallest_x = r(verts[0].co[0])
-        largest_x = r(verts[-1].co[0])
-        smallest_z = r(verts[0].co[2])
-        largest_z = r(verts[-1].co[2])
-        expected_quad_size = r(r(verts[1].co[0]) - r(verts[0].co[0]))
-        last = smallest_x
-        bad_vert = []
-
-        # Check for grid conformity and highlight all bad verticies
-        for v in verts:
-            if r(v.co[0]) == smallest_x:
-                last = smallest_x
-            elif r(v.co[0]) - last != expected_quad_size:
-                bad_vert.append((v.co))
-            else:
-                last = r(v.co[0])
-
-        for v in verts:
-            if r(v.co[0]) == largest_x:
-                last = r(v.co[2])
-            if r(v.co[2]) == smallest_z:
-                continue
-            print(v.co[2], last)
-            if r(v.co[2]) - last != expected_quad_size:
-                bad_vert.append((v.co))
-
-        # TODO highlight all of the bad vertices.
-        if len(bad_vert):
-            ShowMessageBox("Terrain verticies are not in a square grid along the X and Z axis. The bad verties have been highlighted.", "Terrain has errors", "ERROR")
-            return {"FINISHED"}
-
-        resolution = sqrt( len(verts) ) - 1
-        if round(resolution) != sqrt( len(verts) ) - 1:
-            ShowMessageBox("Terrain has an odd number of verticies.", "Terrain has errors", "ERROR")
-            return {"FINISHED"}
-
-        ShowMessageBox("Terrain object look good :)")
-        return {"FINISHED"}
+from bpy.props import ( BoolProperty, FloatProperty, StringProperty, EnumProperty, IntProperty )
 
 class ExportPropMaterial(bpy.types.PropertyGroup):
 
@@ -118,7 +20,6 @@ class ExportPropMaterial(bpy.types.PropertyGroup):
                                      ('none', 'Do not Cull', 'Disable polygon culling'),
                                      ('unused', 'Ignore Culling', 'Ignore culling and use whatever is set'),
                                  ),
-                                 name="Polygon culling",
                                  default = "unused"
                              )
 
@@ -130,7 +31,6 @@ class ExportPropObject(bpy.types.PropertyGroup):
         )
 
     terrain_segment_count = EnumProperty(
-        name="Rows and columns",
         description="The amount of world segments which will be created when the terrain is imported into the engine.",
         items=lambda s,c: get_terrain_sqrt("terrain_segment_count", s, c),
         )
@@ -162,11 +62,12 @@ class ExportPropObject(bpy.types.PropertyGroup):
         )
 
     collision_detection = BoolProperty(
-        default=True,
+        default=False,
         description="Use the object as a collision detection object in the PBD engine. This still needs to the checked when using a proxy object as a collsion object"
         )
+
     collision_bounding  = BoolProperty(
-        default=True,
+        default=False,
         description="Use only the bounding box of the object for collision detection."
         )
 
@@ -187,7 +88,6 @@ class ExportPropObject(bpy.types.PropertyGroup):
                                      ('none', 'Do not Cull', 'Disable polygon culling'),
                                      ('unused', 'Ignore Culling', 'Ignore culling and use whatever is set'),
                                  ),
-                                 name="Polygon culling",
                                  default = "back"
                              )
 
@@ -198,9 +98,14 @@ class ExportPropObject(bpy.types.PropertyGroup):
         )
 
 
-def make_path_absolute(key):
+def make_path_absolute(key, self, context):
     """ Prevent Blender's relative paths of doom """
-    props = bpy.context.scene.pbd_prop
+
+    if context.scene.pbd_prop.export_object_with == 'collection':
+        props = context.collection.pbd_prop
+    else:
+        props = context.scene.pbd_prop
+
     sane_path = lambda p: os.path.abspath(bpy.path.abspath(p))
 
     if key in props and props[key].startswith('//'):
@@ -227,34 +132,28 @@ def get_terrain_sqrt(key, self, context):
 
     return item
 
-class ExportPropScene(bpy.types.PropertyGroup):
+class ExportProp(bpy.types.PropertyGroup):
 
-    world_scale = IntProperty(
+    export_object_with = EnumProperty(items= (
+            ('scene', 'Current Scene', 'Use the entrire scene for exporting objects.'),
+            ('collection', 'Current Collection', 'Use only the current collection for exporting objects.'),
+        ),
+        default = "collection"
+        )
+
+    scale = IntProperty(
         min = 1, max = 100000,
-        default = 10000,
-        name = "World scale",
-        description = "This only affects how large the numbers used in the calculations are",
-        )
-
-    corralate_terrain_name = StringProperty(
-        name = "Corralate to terrain",
-        description = "Export the model geometry according to its position the set terrain object",
-        )
-
-    corralate_model_terrain = BoolProperty (
-        name = "Corralate to world",
-        description = "Export the model geometry according to its position of the set world corralate object.",
-        default=True
+        default = 230,
+        name = "Scale",
+        description = "The exporting scale of the object.",
         )
 
     terrain_use_normals = BoolProperty(
-        name="Write Normals",
         description="Export one normal per vertex and per face, to represent flat faces and sharp edges",
         default=False,
         )
 
     terrain_use_mesh_modifiers = BoolProperty(
-        name="Apply modifiers",
         description="Apply any modifiers to the terrain before exporting it",
         default=True,
         )
@@ -292,35 +191,33 @@ class ExportPropScene(bpy.types.PropertyGroup):
     )
 
     use_selection = BoolProperty(
-            name="Selection only",
-            description="Export selected objects only. Otherwise, the entire scene will be exported",
-            default=False,
-            )
+        description="Export selected objects only. Otherwise, the entire scene or collections will be exported",
+        default=False,
+        )
+
+    use_hidden = BoolProperty(
+        description="Export objects which are hidden as well. Otherwise, no hidden objects will be exported (even if they are selected)",
+        default=False,
+        )
 
     use_draw_order = BoolProperty(
-            name="Obey draw order",
-            description="Use the draw order numbers to determine which object appear first in object file",
-            default=True
-            )
+        description="Use the draw order numbers to determine which object appear first in object file",
+        default=True
+        )
 
     use_animation = BoolProperty(
-            name="Animation",
-            description="Write out an OBJ for each frame",
-            default=False,
-            )
+        description="Write out an OBJ for each frame",
+        default=False,
+        )
 
-    convert_to_json = BoolProperty(
-            name="Output javscrtipt file",
-            description="Write out a javascript file which conforms to the PBD standards when exporting",
-            default=False,
-            )
-
-    json_export_type = EnumProperty(items= (('model', 'Model', 'A standard 3d model for PBD'),
-                                             ('widget', 'Widget', 'An orthographic data model for PBD'),
-                                             ('font', 'Font', 'A font data model for use with PBD'),
-                                             ),
-                                             default = "model"
-                                         )
+    json_export_type = EnumProperty(items= (
+            ('none', 'None', 'Do not export a PBD javascript file'),
+            ('model', 'Model', 'A standard 3d model for PBD'),
+            ('widget', 'Widget', 'An orthographic data model for PBD'),
+            ('font', 'Font', 'A font data model for use with PBD'),
+        ),
+        default = "model"
+        )
 
     model_name = StringProperty(
         default = "blender_export",
@@ -328,7 +225,6 @@ class ExportPropScene(bpy.types.PropertyGroup):
         )
 
     json_precision = IntProperty(
-        name="JS data precision",
         default=5,
         min=1,
         max=16,
@@ -336,7 +232,6 @@ class ExportPropScene(bpy.types.PropertyGroup):
         )
 
     json_compressed = IntProperty(
-        name="Compression level",
         default=2,
         min=1,
         max=5,
@@ -344,95 +239,93 @@ class ExportPropScene(bpy.types.PropertyGroup):
         )
 
     json_as_widget = BoolProperty(
-            name="Output as widget",
-            description="Export the data using a zero value for the depth to conform to pbd standard",
-            default=False,
-            )
+        description="Export the data using a zero value for the depth to conform to pbd standard",
+        default=False,
+        )
+
+    ignore_normals = BoolProperty(
+        description="Do not include lighting normals in the exported obj file for any objects",
+        default=False,
+        )
+
+    ignore_uv_map = BoolProperty(
+        description="Do not include UV mapping coordinates in the exported obj file for any objects",
+        default=False,
+        )
 
     json_ignore_normals = BoolProperty(
-            name="Skip lighting normals",
-            description="Do not include lighting normals in the exported js file for any objects",
-            default=False,
-            )
+        description="Do not include lighting normals in the exported js file for any objects",
+        default=False,
+        )
 
     json_ignore_uv_map = BoolProperty(
-            name="Skip UV mapping",
-            description="Do not include UV mapping coordinates in the exported js file for any objects",
-            default=False,
-            )
+        description="Do not include UV mapping coordinates in the exported js file for any objects",
+        default=False,
+        )
 
-    json_include_meta = BoolProperty(
-            name="Create meta",
-            description="Create model meta data in the json file",
-            default=True,
-            )
+    json_ignore_meta = BoolProperty(
+        description="Do not create the model meta data in the json file",
+        default=True,
+        )
 
     json_force_texture = BoolProperty(
-            name="Overwrite textures",
-            description="Overwrite all textures copied to the destination with the js file. Otherwise, textures are only copied if one with the same name is not in the destination already",
-            default=True,
-            )
+        description="Overwrite all textures copied to the destination with the js file. Otherwise, textures are only copied if one with the same name is not in the destination already",
+        default=True,
+        )
 
     json_additional_option = StringProperty(
-            name="Additional parameters",
-            description="Any additional parameters to pass into the js exporting script",
-            default="",
-            maxlen=256
-            )
+        description="(Optional) Any additional parameters to pass into the js exporting script",
+        default="",
+        maxlen=256
+        )
 
     json_output_path = StringProperty(
-            name="Destination",
-            description="(Required) Choose a directory to create the json file. This should be within the project html structure",
-            default="",
-            maxlen=1024,
-            update = lambda s,c: make_path_absolute('json_output_path'),
-            subtype='DIR_PATH'
-            )
+        description="(Required) Choose a directory to create the json file. This should be within the project html structure",
+        default="",
+        maxlen=1024,
+        update = lambda s,c: make_path_absolute('json_output_path', s, c),
+        subtype='DIR_PATH'
+        )
     json_asset_root = StringProperty(
-            name="Server root",
-            description="(Optional) Choose the directory which serves as the base url for the network server. This is prepended to any asset urls created in the json file",
-            default="",
-            maxlen=1024,
-            update = lambda s,c: make_path_absolute('json_asset_root'),
-            subtype='DIR_PATH'
-            )
+        description="(Optional) Choose the directory which serves as the base url for the network server. This is prepended to any asset urls created in the json file",
+        default="",
+        maxlen=1024,
+        update = lambda s,c: make_path_absolute('json_asset_root', s, c),
+        subtype='DIR_PATH'
+        )
 
     json_texture_subdir = StringProperty(
-            name="Texture sub-directory",
-            description="(Optional) Must be a relative path string. A relative path to the js destination path which will store all of the textures used within the js export. Note: Textures are copied from the input specified in the OBJ data to the destination (not moved)",
-            default="Textures",
-            maxlen=1024,
-            subtype='DIR_PATH'
-            )
+        description="(Optional) Must be a relative path string. A relative path to the js destination path which will store all of the textures used within the js export. Note: Textures are copied from the input specified in the OBJ data to the destination (not moved)",
+        default="Textures",
+        maxlen=1024,
+        subtype='DIR_PATH'
+        )
 
     json_import_path = StringProperty(
-            name="Input OBJ file",
-            description="(Optional) A js file may be exported using an input OBJ file instead of the OBJ file exported from the scene",
-            default="",
-            maxlen=1024,
-            update = lambda s,c: make_path_absolute('json_import_path'),
-            subtype='FILE_PATH'
-            )
+        description="(Optional) A js file may be exported using an input OBJ file instead of the OBJ file exported from the scene",
+        default="",
+        maxlen=1024,
+        update = lambda s,c: make_path_absolute('json_import_path', s, c),
+        subtype='FILE_PATH'
+        )
 
 
 def register():
 
-    bpy.utils.register_class(CreateTerrain)
-    bpy.utils.register_class(VerifyTerrain)
     bpy.utils.register_class(ExportPropObject)
-    bpy.utils.register_class(ExportPropScene)
+    bpy.utils.register_class(ExportProp)
     bpy.utils.register_class(ExportPropMaterial)
     bpy.types.Object.pbd_prop = bpy.props.PointerProperty(type=ExportPropObject)
-    bpy.types.Scene.pbd_prop = bpy.props.PointerProperty(type=ExportPropScene)
+    bpy.types.Collection.pbd_prop = bpy.props.PointerProperty(type=ExportProp)
+    bpy.types.Scene.pbd_prop = bpy.props.PointerProperty(type=ExportProp)
     bpy.types.Material.pbd_prop = bpy.props.PointerProperty(type=ExportPropMaterial)
 
 def unregister():
 
     bpy.utils.unregister_class(ExportPropMaterial)
     bpy.utils.unregister_class(ExportPropObject)
-    bpy.utils.unregister_class(ExportPropScene)
-    bpy.utils.register_class(VerifyTerrain)
-    bpy.utils.unregister_class(CreateTerrain)
+    bpy.utils.unregister_class(ExportProp)
     del bpy.types.Material.pbd_prop
     del bpy.types.Object.pbd_prop
     del bpy.types.Scene.pbd_prop
+    del bpy.types.Collection.pbd_prop

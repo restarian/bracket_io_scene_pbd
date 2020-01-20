@@ -42,24 +42,55 @@ class ExportTerrain(bpy.types.Operator, ExportHelper):
         from . import export_json
         from mathutils import Matrix
 
-        global_matrix = (Matrix.Scale(context.scene.pbd_prop.world_scale, 4) @ axis_conversion(to_forward="Y", to_up="-Z", ).to_4x4())
+        if context.scene.pbd_prop.export_object_with == 'scene':
+            c = context.scene
+            c_ob = c.pbd_prop
+        else:
+            c = context.collection
+            c_ob = c.pbd_prop
 
-        if context.scene.pbd_prop.terrain_use_active_object:
+        global_matrix = (Matrix.Scale(c_ob.scale, 4) @ axis_conversion(to_forward="Y", to_up="-Z", ).to_4x4())
+
+        if c_ob.terrain_use_active_object:
             terrain_obj = context.active_object
         else:
-            terrain_obj = context.scene.objects[context.scene.pbd_prop.terrain_object.strip()]
+            terrain_obj = c.objects[c_ob.terrain_object.strip()]
 
         export_json.makeTerrain(context,
             filepath=self.filepath,
-            output_path=context.scene.pbd_prop.json_output_path,
+            output_path=c_ob.json_output_path,
             object_name=terrain_obj.name,
-            precision=context.scene.pbd_prop.json_precision,
+            precision=c_ob.json_precision,
             terrain_matrix=global_matrix,
-            use_mesh_modifiers=context.scene.pbd_prop.terrain_use_mesh_modifiers,
-            use_normals=context.scene.pbd_prop.terrain_use_normals,
+            use_mesh_modifiers=c_ob.terrain_use_mesh_modifiers,
+            use_normals=c_ob.terrain_use_normals,
             )
 
         return {"FINISHED"}
+
+def exportJson(self, context):
+
+    from . import export_json
+    if context.scene.pbd_prop.export_object_with == 'scene':
+        c_ob = context.scene.pbd_prop
+    else:
+        c_ob = context.collection.pbd_prop
+
+    export_json.make(context,
+        export_type=c_ob.json_export_type,
+        input_path=self.filepath,
+        output_path=c_ob.json_output_path,
+        asset_root=c_ob.json_asset_root,
+        texture_subdir=c_ob.json_texture_subdir,
+        script_path=context.preferences.addons["bracket_io_scene_pbd"].preferences.script_path,
+        precision=c_ob.json_precision,
+        ignore_normals=c_ob.json_ignore_normals,
+        ignore_uv=c_ob.json_ignore_uv_map,
+        ignore_meta=c_ob.json_ignore_meta,
+        force_texture=c_ob.json_force_texture,
+        compression_level=c_ob.json_compressed,
+        addition_option=c_ob.json_additional_option,
+   )
 
 class ExportFile(bpy.types.Operator, ExportHelper):
     """Save a Wavefront OBJ File with some added features to conform to the PBD engine"""
@@ -77,77 +108,68 @@ class ExportFile(bpy.types.Operator, ExportHelper):
     check_extension = True
     def execute(self, context):
 
-        from . import export_json
         from . import export_obj
         from mathutils import Matrix
 
-        global_matrix = (Matrix.Scale(context.scene.pbd_prop.world_scale, 4) @ axis_conversion(to_forward="Y", to_up="-Z", ).to_4x4())
+        if context.scene.pbd_prop.export_object_with == 'scene':
+            c_ob = context.scene.pbd_prop
+        else:
+            c_ob = context.collection.pbd_prop
+
+        to_foward = "-Y"
+        if c_ob.json_export_type == "model":
+            to_forward = "Y"
+
+        global_matrix = (Matrix.Scale(c_ob.scale, 4) @ axis_conversion(to_forward=to_foward, to_up="-Z", ).to_4x4())
 
         keywords = {}
         keywords["global_matrix"] = global_matrix
-        keywords["use_selection"] = context.scene.pbd_prop.use_selection
-        keywords["use_order"] = context.scene.pbd_prop.use_draw_order
-        keywords["use_animation"] = context.scene.pbd_prop.use_animation
-        keywords["use_mesh_modifiers"] = context.scene.pbd_prop.model_use_mesh_modifiers
+        keywords["use_selection"] = c_ob.use_selection
+        keywords["use_collection"] = context.scene.pbd_prop.export_object_with == 'collection'
+        keywords["use_hidden"] = c_ob.use_hidden
+        keywords["use_order"] = c_ob.use_draw_order
+        keywords["use_animation"] = c_ob.use_animation
+        keywords["use_mesh_modifiers"] = c_ob.model_use_mesh_modifiers
+        keywords["use_normals"] = c_ob.ignore_normals,
+        keywords["use_uvs"] = c_ob.ignore_uv_map,
         keywords["filepath"] = self.filepath
 
         export_obj.save(context, **keywords)
-        if context.scene.pbd_prop.convert_to_json and len(context.preferences.addons["bracket_io_scene_pbd"].preferences.script_path):
-
-            export_json.make(context,
-                export_type=context.scene.pbd_prop.json_export_type,
-                input_path=self.filepath,
-                output_path=context.scene.pbd_prop.json_output_path,
-                asset_root=context.scene.pbd_prop.json_asset_root,
-                texture_subdir=context.scene.pbd_prop.json_texture_subdir,
-                script_path=context.preferences.addons["bracket_io_scene_pbd"].preferences.script_path,
-                precision=context.scene.pbd_prop.json_precision,
-                ignore_normals=context.scene.pbd_prop.json_ignore_normals,
-                ignore_uv=context.scene.pbd_prop.json_ignore_uv_map,
-                include_meta=context.scene.pbd_prop.json_include_meta,
-                force_texture=context.scene.pbd_prop.json_force_texture,
-                compression_level=context.scene.pbd_prop.json_compressed,
-                addition_option=context.scene.pbd_prop.json_additional_option,
-           )
+        if c_ob.json_export_type != "none" and len(context.preferences.addons["bracket_io_scene_pbd"].preferences.script_path.strip()):
+            exportJson(self, context)
 
         return {"FINISHED"}
 
-class ExportJSON(bpy.types.Operator):
+class ExportJsFromObj(bpy.types.Operator):
     """Save a PBD javascript file using the input OBJ file instead of the exported scene objects"""
 
     bl_idname = "export.json_from_obj"
     bl_label = 'Export using existing OBJ'
     bl_options = {'PRESET'}
 
+
     @classmethod
     def poll(cls, context):
-        return context.scene.pbd_prop.json_import_path and not context.scene.pbd_prop.json_import_path.isspace()
+        if context.scene.pbd_prop.export_object_with == 'scene':
+            c_ob = context.scene.pbd_prop
+        else:
+            c_ob = context.collection.pbd_prop
+        return bool(len(c_ob.json_import_path.strip()))
 
     def execute(self, context):
 
-        export_json.make(context,
-            export_type=context.scene.pbd_prop.json_export_type,
-            input_path=context.scene.pbd_prop.json_import_path,
-            output_path=context.scene.pbd_prop.json_output_path,
-            asset_root=context.scene.pbd_prop.json_asset_root,
-            texture_subdir=context.scene.pbd_prop.json_texture_subdir,
-            script_path=context.preferences.addons["bracket_io_scene_pbd"].preferences.script_path,
-            precision=context.scene.pbd_prop.json_precision,
-            ignore_normals=context.scene.pbd_prop.json_ignore_normals,
-            include_meta=context.scene.pbd_prop.json_include_meta,
-            force_texture=context.scene.pbd_prop.json_force_texture,
-            compression_level=context.scene.pbd_prop.json_compressed,
-            addition_option=context.scene.pbd_prop.json_additional_option,
-        )
+        if len(context.preferences.addons["bracket_io_scene_pbd"].preferences.script_path.strip()):
+            exportJson(self, context)
+
         return {"FINISHED"}
 
 def register():
     bpy.utils.register_class(ExportFile)
     bpy.utils.register_class(ExportTerrain)
-    bpy.utils.register_class(ExportJSON)
+    bpy.utils.register_class(ExportJsFromObj)
 
 
 def unregister():
     bpy.utils.unregister_class(ExportFile)
     bpy.utils.unregister_class(ExportTerrain)
-    bpy.utils.unregister_class(ExportJSON)
+    bpy.utils.unregister_class(ExportJsFromObj)

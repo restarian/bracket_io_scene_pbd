@@ -249,11 +249,10 @@ def write_file(filepath, objects, depsgraph, scene,
                EXPORT_EDGES=False,
                EXPORT_SMOOTH_GROUPS=False,
                EXPORT_SMOOTH_GROUPS_BITFLAGS=False,
-               EXPORT_NORMALS=False,
+               EXPORT_NORMALS=True,
                EXPORT_UV=True,
                EXPORT_MTL=True,
                EXPORT_APPLY_MODIFIERS=True,
-               EXPORT_APPLY_MODIFIERS_RENDER=False,
                EXPORT_BLEN_OBS=True,
                EXPORT_GROUP_BY_OB=False,
                EXPORT_GROUP_BY_MAT=False,
@@ -647,7 +646,7 @@ def write_file(filepath, objects, depsgraph, scene,
                                 face_vert_index += len(f_v)
 
                             else:  # No UV's
-                                if EXPORT_NORMALS:
+                                if ob.pbd_prop.include_normals and EXPORT_NORMALS:
                                     for vi, v, li in f_v:
                                         fw(" %d//%d" % (totverts + v.index, totno + loops_to_normals[li]))
                                 else:  # No Normals
@@ -695,7 +694,6 @@ def _write(context, filepath,
            EXPORT_UV,  # ok
            EXPORT_MTL,
            EXPORT_APPLY_MODIFIERS,  # ok
-           EXPORT_APPLY_MODIFIERS_RENDER,  # ok
            EXPORT_BLEN_OBS,
            EXPORT_GROUP_BY_OB,
            EXPORT_GROUP_BY_MAT,
@@ -703,6 +701,8 @@ def _write(context, filepath,
            EXPORT_POLYGROUPS,
            EXPORT_CURVE_AS_NURBS,
            EXPORT_SEL_ONLY,  # ok
+           EXPORT_COLLECTION,  # ok
+           EXPORT_HIDDEN,  # ok
            EXPORT_ANIMATION,
            EXPORT_GLOBAL_MATRIX,
            ):
@@ -733,20 +733,23 @@ def _write(context, filepath,
                 context_name[2] = '_%.6d' % frame
 
             scene.frame_set(frame, subframe=0.0)
-            if EXPORT_SEL_ONLY:
-                objects = context.selected_objects
+            if not EXPORT_COLLECTION:
+                if EXPORT_SEL_ONLY:
+                    objects = context.selected_objects
+                else:
+                    objects = context.scene.objects.values()
             else:
-                objects = scene.objects
+                #objects = context.layer_collection[context.scene.pbd_prop.selected_collection].all_objects
+                objects = context.collection.objects.values()
+                if EXPORT_SEL_ONLY:
+                    for i in objects:
+                        if not i.select_get():
+                            objects.remove(i)
 
-            corralate_terrain=scene.pbd_prop.corralate_terrain_name
-            if scene.pbd_prop.corralate_model_terrain and len(corralate_terrain):
-                c_ob = scene.objects[corralate_terrain]
-                for obj in objects:
-                    if obj.name == c_ob.name:
-                        continue
-                    obj.location[0] += c_ob.location[0]
-                    obj.location[1] += c_ob.location[1]
-                    obj.location[2] += c_ob.location[2]
+            if not EXPORT_HIDDEN:
+                for i in objects:
+                    if i.hide_get():
+                        objects.remove(i)
 
             full_path = ''.join(context_name)
 
@@ -763,7 +766,6 @@ def _write(context, filepath,
                        EXPORT_UV,
                        EXPORT_MTL,
                        EXPORT_APPLY_MODIFIERS,
-                       EXPORT_APPLY_MODIFIERS_RENDER,
                        EXPORT_BLEN_OBS,
                        EXPORT_GROUP_BY_OB,
                        EXPORT_GROUP_BY_MAT,
@@ -775,14 +777,6 @@ def _write(context, filepath,
                        )
             progress.leave_substeps()
 
-            if scene.pbd_prop.corralate_model_terrain and len(corralate_terrain):
-                c_ob = scene.objects[corralate_terrain]
-                for obj in objects:
-                    if obj.name == c_ob.name:
-                        continue
-                    obj.location[0] -= c_ob.location[0]
-                    obj.location[1] -= c_ob.location[1]
-                    obj.location[2] -= c_ob.location[2]
         scene.frame_set(orig_frame, subframe=0.0)
         progress.leave_substeps()
 
@@ -800,13 +794,12 @@ def save(context,
          use_order=True,
          use_triangles=True,
          use_edges=False,
-         use_normals=True,
+         use_normals=False,
          use_smooth_groups=False,
          use_smooth_groups_bitflags=False,
          use_uvs=True,
          use_materials=True,
          use_mesh_modifiers=True,
-         use_mesh_modifiers_render=False,
          use_blen_objects=True,
          group_by_object=False,
          group_by_material=False,
@@ -814,6 +807,8 @@ def save(context,
          use_vertex_groups=False,
          use_nurbs=False,
          use_selection=True,
+         use_collection=True,
+         use_hidden=False,
          use_animation=False,
          global_matrix=None,
          ):
@@ -828,7 +823,6 @@ def save(context,
            EXPORT_UV=use_uvs,
            EXPORT_MTL=use_materials,
            EXPORT_APPLY_MODIFIERS=use_mesh_modifiers,
-           EXPORT_APPLY_MODIFIERS_RENDER=use_mesh_modifiers_render,
            EXPORT_BLEN_OBS=use_blen_objects,
            EXPORT_GROUP_BY_OB=group_by_object,
            EXPORT_GROUP_BY_MAT=group_by_material,
@@ -836,6 +830,8 @@ def save(context,
            EXPORT_POLYGROUPS=use_vertex_groups,
            EXPORT_CURVE_AS_NURBS=use_nurbs,
            EXPORT_SEL_ONLY=use_selection,
+           EXPORT_HIDDEN=use_hidden,
+           EXPORT_COLLECTION=use_collection,
            EXPORT_ANIMATION=use_animation,
            EXPORT_GLOBAL_MATRIX=global_matrix,
            )
