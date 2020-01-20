@@ -67,7 +67,7 @@ class TerrainTools(bpy.types.Panel):
         if has_terrain:
             col = box.column()
             col.separator()
-            col.prop(terrain_obj.pbd_prop, "terrain_name", text="Name")
+            col.prop(terrain_obj.pbd_prop, "name", text="Name")
             col.prop(terrain_obj.pbd_prop, "terrain_segment_count", text="Rows/Columns", expand=False)
             col.separator()
 
@@ -229,7 +229,7 @@ class ModelExport(bpy.types.Panel):
 
                 row = box.row()
                 row.scale_y = 1.1
-                row.prop(c_ob, "model_name", text="Export name")
+                row.prop(c_ob, "name", text="Export name")
 
                 row = box.row()
                 row.prop(c_ob, "json_ignore_normals", text="Ignore normals")

@@ -10,8 +10,6 @@ bl_info = {
     "category": "Import-Export"
 }
 
-#moduleNames = ["addon_preference", "main_panel", "addon_property", "text_creation", "object_creation", "file_export", "file_import" ]
-
 from . import terrain_tools
 from . import addon_preference
 from . import addon_property

@@ -25,7 +25,7 @@ class ExportPropMaterial(bpy.types.PropertyGroup):
 
 class ExportPropObject(bpy.types.PropertyGroup):
 
-    terrain_name = StringProperty(
+    name = StringProperty(
         default = "",
         description = "The name of the terrain set to the header type",
         )
@@ -143,7 +143,7 @@ class ExportProp(bpy.types.PropertyGroup):
 
     scale = IntProperty(
         min = 1, max = 100000,
-        default = 230,
+        default = 100,
         name = "Scale",
         description = "The exporting scale of the object.",
         )
@@ -219,7 +219,7 @@ class ExportProp(bpy.types.PropertyGroup):
         default = "model"
         )
 
-    model_name = StringProperty(
+    name = StringProperty(
         default = "blender_export",
         description = "The name of the model as a type",
         )

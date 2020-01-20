@@ -18,11 +18,88 @@
 
 # <pep8-80 compliant>
 
-import bpy
+import bpy, os
 from bpy.props import ( BoolProperty, FloatProperty, StringProperty, EnumProperty, IntProperty )
-from bpy_extras.io_utils import ( ExportHelper, axis_conversion )
+from bpy_extras.io_utils import ( axis_conversion )
 
-class ExportTerrain(bpy.types.Operator, ExportHelper):
+class CustomExportHelper:
+    filepath: StringProperty(
+        name="File Path",
+        description="Filepath used for exporting the file",
+        maxlen=1024,
+        subtype='FILE_PATH',
+    )
+    check_existing: BoolProperty(
+        name="Check Existing",
+        description="Check and warn on overwriting existing files",
+        default=True,
+        options={'HIDDEN'},
+    )
+
+    # subclasses can override with decorator
+    # True == use ext, False == no ext, None == do nothing.
+    check_extension = True
+    use_pbd_path = False
+    is_pbd_terrain = False
+
+    def check(self, _context):
+        change_ext = False
+        check_extension = self.check_extension
+
+        if check_extension is not None:
+            filepath = self.filepath
+            if os.path.basename(filepath):
+                filepath = bpy.path.ensure_ext(
+                    filepath,
+                    self.filename_ext
+                    if check_extension
+                    else "",
+                )
+
+                if filepath != self.filepath:
+                    self.filepath = filepath
+                    change_ext = True
+
+        return change_ext
+
+    def invoke(self, context, _event):
+
+        path = ''
+        if self.use_pbd_path:
+            if context.scene.pbd_prop.export_object_with == 'scene':
+                c_ob = context.scene.pbd_prop
+            else:
+                c_ob = context.collection.pbd_prop
+
+            if self.is_pbd_terrain:
+                if c_ob.terrain_use_active_object:
+                    terrain_obj = context.active_object
+                else:
+                    t_ob = c_ob.terrain_object.strip()
+                    if t_ob in c.objects:
+                        terrain_obj = c.objects[t_obj]
+
+                c_ob = terrain_obj.pbd_prop
+
+            path = os.path.join(os.path.dirname(context.blend_data.filepath), c_ob.name)
+
+        if not self.filepath:
+            blend_filepath = path or context.blend_data.filepath
+            if not blend_filepath:
+                blend_filepath = "untitled"
+            else:
+                blend_filepath = os.path.splitext(blend_filepath)[0]
+
+            self.filepath = blend_filepath + self.filename_ext
+
+        else:
+            if self.use_pbd_path:
+                self.filepath = os.path.join(path, os.path.splitext(os.path.basename(path))[0] + self.filename_ext)
+
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+class ExportTerrain(bpy.types.Operator, CustomExportHelper):
     """Save a terrain file which conforms to the PBD engine"""
 
     bl_idname = "export.pbd_terrain_file"
@@ -36,6 +113,8 @@ class ExportTerrain(bpy.types.Operator, ExportHelper):
             )
 
     check_extension = True
+    use_pbd_path = True
+    is_pbd_terrain = True
 
     def execute(self, context):
 
@@ -92,7 +171,7 @@ def exportJson(self, context):
         addition_option=c_ob.json_additional_option,
    )
 
-class ExportFile(bpy.types.Operator, ExportHelper):
+class ExportFile(bpy.types.Operator, CustomExportHelper):
     """Save a Wavefront OBJ File with some added features to conform to the PBD engine"""
 
     bl_idname = "export.pbd_file"
@@ -106,6 +185,8 @@ class ExportFile(bpy.types.Operator, ExportHelper):
             )
 
     check_extension = True
+    use_pbd_path = True
+
     def execute(self, context):
 
         from . import export_obj
@@ -146,7 +227,6 @@ class ExportJsFromObj(bpy.types.Operator):
     bl_idname = "export.json_from_obj"
     bl_label = 'Export using existing OBJ'
     bl_options = {'PRESET'}
-
 
     @classmethod
     def poll(cls, context):

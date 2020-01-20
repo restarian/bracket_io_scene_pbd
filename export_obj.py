@@ -297,6 +297,11 @@ def write_file(filepath, objects, depsgraph, scene,
         else:
             return '(null)'
 
+    if bpy.context.scene.pbd_prop.export_object_with == 'scene':
+        c_ob = bpy.context.scene.pbd_prop
+    else:
+        c_ob = bpy.context.collection.pbd_prop
+
     with ProgressReportSubstep(progress, 2, "OBJ Export path: %r" % filepath, "OBJ Export Finished") as subprogress1:
         with open(filepath, "w", encoding="utf8", newline="\n") as f:
             fw = f.write
@@ -305,10 +310,9 @@ def write_file(filepath, objects, depsgraph, scene,
             fw('# PBD exported Blender v%s OBJ File: %r\n' % (bpy.app.version_string, os.path.basename(bpy.data.filepath)))
             fw('# www.blender.org\n')
 
-            fw('header_type %s\n' % scene.pbd_prop.json_export_type)
-            if len(scene.pbd_prop.model_name.strip()):
-                fw('header_name %s\n' % scene.pbd_prop.model_name)
-
+            fw('header_type %s\n' % c_ob.json_export_type)
+            if len(c_ob.name.strip()):
+                fw('header_name %s\n' % c_ob.name)
 
             # Tell the obj file what material file to use.
             if EXPORT_MTL:
