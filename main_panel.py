@@ -8,16 +8,16 @@ class MainSettings(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "Play Based Directive"
+    bl_options = {'HIDE_HEADER'}
 
     def draw(self, context):
         layout = self.layout
 
         box = layout.box()
-        box.label(text="Main Settings")
         col = box.column()
         col.label(text="Export objects using:")
         row = box.row()
-        row.scale_y = 1.2
+        row.scale_y = 1.6
         row.prop(context.scene.pbd_prop, "export_object_with", expand=True, emboss=True)
 
 class TerrainTools(bpy.types.Panel):
@@ -90,7 +90,6 @@ class ModelImport(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "Play Based Directive"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -112,12 +111,13 @@ class FontCreation(bpy.types.Panel):
 
     def draw(self, context):
 
+        c_ob = context.collection.pbd_prop if context.scene.pbd_prop.export_object_with == 'collection' else context.scene.pbd_prop
         layout = self.layout
         box = layout.box()
         box.label(text="Font-Text Creation")
         split = box.split(factor=0.29)
         split.operator("scene.pbd_reset_character")
-        split.prop(context.scene.pbd_prop, 'character_array', text="")
+        split.prop(c_ob, 'character_array', text="")
         col = box.column()
         col.operator("scene.pbd_create_text_curve", text="Create Text Curve")
         col.scale_y = 1.3
@@ -128,10 +128,15 @@ class FontCreation(bpy.types.Panel):
             lbl += " - " + str(context.active_object.name)
         box.label(text=lbl)
         col = box.column()
-        col.prop(context.scene.pbd_prop, "label_prefix", text="Name prefix")
-        col.prop(context.scene.pbd_prop, "delete_after", text="Delete text curve after conversion")
+        col.prop(c_ob, "label_prefix", text="Name prefix")
+        row = box.row(align=True)
+        row.prop(c_ob, "delete_after", text="Delete text after conversion")
+        col = row.column()
+        col.active = not c_ob.delete_after
+        col.prop(c_ob, "hide_after", text="Hide text after conversion")
+
         col = box.column()
-        col.operator("curve.pbd_create_object", text="Convert Font to Objects")
+        col.operator("curve.convert_to_object", text="Convert Font to Objects")
         col.scale_y = 1.3
 
 class ModelExport(bpy.types.Panel):
@@ -145,10 +150,7 @@ class ModelExport(bpy.types.Panel):
 
     def draw(self, context):
 
-        if context.scene.pbd_prop.export_object_with == 'collection':
-            c_ob = context.collection
-        else:
-            c_ob = context.scene
+        c_ob = context.collection if context.scene.pbd_prop.export_object_with == 'collection' else context.scene
 
         layout = self.layout
         if context.active_object is not None and context.active_object.type == "MESH":
@@ -157,7 +159,7 @@ class ModelExport(bpy.types.Panel):
 
             row = box.row(align=True)
             row.prop(context.active_object.pbd_prop, "cull_face", text="")
-            row.prop(context.active_object.pbd_prop, "draw_index")
+            row.prop(context.active_object.pbd_prop, "draw_index", text="Draw order index")
 
             row = box.row(align=True)
             row.prop(context.active_object.pbd_prop, "display", text="Display")

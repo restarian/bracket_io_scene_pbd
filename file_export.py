@@ -150,11 +150,7 @@ class ExportTerrain(bpy.types.Operator, CustomExportHelper):
 def exportJson(self, context):
 
     from . import export_json
-    if context.scene.pbd_prop.export_object_with == 'scene':
-        c_ob = context.scene.pbd_prop
-    else:
-        c_ob = context.collection.pbd_prop
-
+    c_ob = context.scene.pbd_prop if context.scene.pbd_prop.export_object_with == 'scene' else context.collection.pbd_prop
     export_json.make(context,
         export_type=c_ob.json_export_type,
         input_path=self.filepath,
@@ -192,11 +188,7 @@ class ExportFile(bpy.types.Operator, CustomExportHelper):
         from . import export_obj
         from mathutils import Matrix
 
-        if context.scene.pbd_prop.export_object_with == 'scene':
-            c_ob = context.scene.pbd_prop
-        else:
-            c_ob = context.collection.pbd_prop
-
+        c_ob = context.scene.pbd_prop if context.scene.pbd_prop.export_object_with == 'scene' else context.collection.pbd_prop
         to_foward = "-Y"
         if c_ob.json_export_type == "model":
             to_forward = "Y"
@@ -230,10 +222,7 @@ class ExportJsFromObj(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if context.scene.pbd_prop.export_object_with == 'scene':
-            c_ob = context.scene.pbd_prop
-        else:
-            c_ob = context.collection.pbd_prop
+        c_ob = context.scene.pbd_prop if context.scene.pbd_prop.export_object_with == 'scene' else context.collection.pbd_prop
         return bool(len(c_ob.json_import_path.strip()))
 
     def execute(self, context):
@@ -247,7 +236,6 @@ def register():
     bpy.utils.register_class(ExportFile)
     bpy.utils.register_class(ExportTerrain)
     bpy.utils.register_class(ExportJsFromObj)
-
 
 def unregister():
     bpy.utils.unregister_class(ExportFile)

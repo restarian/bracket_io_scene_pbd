@@ -392,7 +392,7 @@ def write_file(filepath, objects, depsgraph, scene,
                         if ob_mat.determinant() < 0.0:
                             me.flip_normals()
 
-                        if EXPORT_UV:
+                        if bool(EXPORT_UV):
                             faceuv = len(me.uv_layers) > 0
                             if faceuv:
                                 uv_layer = me.uv_layers.active.data[:]
@@ -523,7 +523,8 @@ def write_file(filepath, objects, depsgraph, scene,
                         subprogress2.step()
 
                         # NORMAL, Smooth/Non smoothed.
-                        if ob.pbd_prop.include_normals and EXPORT_NORMALS:
+                        if bool(bool(ob.pbd_prop.include_normals) and EXPORT_NORMALS):
+
                             no_key = no_val = None
                             normals_to_idx = {}
                             no_get = normals_to_idx.get
@@ -635,7 +636,7 @@ def write_file(filepath, objects, depsgraph, scene,
 
                             fw('f')
                             if faceuv:
-                                if ob.pbd_prop.include_normals and EXPORT_NORMALS:
+                                if bool(bool(ob.pbd_prop.include_normals) and EXPORT_NORMALS):
                                     for vi, v, li in f_v:
                                         fw(" %d/%d/%d" % (totverts + v.index,
                                                           totuvco + uv_face_mapping[f_index][vi],
@@ -650,7 +651,7 @@ def write_file(filepath, objects, depsgraph, scene,
                                 face_vert_index += len(f_v)
 
                             else:  # No UV's
-                                if ob.pbd_prop.include_normals and EXPORT_NORMALS:
+                                if bool(bool(ob.pbd_prop.include_normals) and EXPORT_NORMALS):
                                     for vi, v, li in f_v:
                                         fw(" %d//%d" % (totverts + v.index, totno + loops_to_normals[li]))
                                 else:  # No Normals
