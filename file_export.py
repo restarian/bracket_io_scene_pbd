@@ -142,7 +142,6 @@ class ExportTerrain(bpy.types.Operator, CustomExportHelper):
             precision=c_ob.json_precision,
             terrain_matrix=global_matrix,
             use_mesh_modifiers=c_ob.terrain_use_mesh_modifiers,
-            use_normals=c_ob.terrain_use_normals,
             )
 
         return {"FINISHED"}

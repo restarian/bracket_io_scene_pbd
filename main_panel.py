@@ -38,17 +38,6 @@ class TerrainTools(bpy.types.Panel):
             c_ob = context.scene.pbd_prop
             c = context.scene
 
-        layout = self.layout
-        box = layout.box()
-        box.label(text="Terrain Creation")
-        col = box.column()
-        #col.operator("terrain.orientation_test", text="TEST")
-        col.operator("terrain.create_starting", text="Create a starting terrain")
-        col.scale_y = 1.3
-
-        box = layout.box()
-        box.label(text="Terrain Height Map Exporting")
-        col = box.column()
         terrain_obj = None
         if c_ob.terrain_use_active_object:
             terrain_obj = context.active_object
@@ -57,8 +46,19 @@ class TerrainTools(bpy.types.Panel):
             if t_ob in c.objects:
                 terrain_obj = c.objects[t_obj]
 
+        layout = self.layout
+        box = layout.box()
+        box.label(text="Terrain Creation")
+        col = box.column()
+        col.prop(c_ob, "terrain_add_multires", text="Add multires modifier")
+        col.operator("terrain.create_starting", text="Create a starting terrain")
+        col.scale_y = 1.3
+
+        box = layout.box()
+        box.label(text="Terrain Height Map Exporting")
+        col = box.column()
+
         has_terrain = terrain_obj is not None and terrain_obj.type == "MESH"
-        #col.prop(context.scene.pbd_prop, "terrain_segment_count", text="Number of segments")
         row = box.row()
         row.prop(c_ob, "terrain_use_active_object", text="Use active object for terrain")
         if not c_ob.terrain_use_active_object:
@@ -73,10 +73,7 @@ class TerrainTools(bpy.types.Panel):
 
             row = box.row()
             row.prop(c_ob, "terrain_use_mesh_modifiers", text="Apply mesh modifiers")
-            row = box.row()
-            row.active = False
-            row.prop(c_ob, "terrain_use_normals", text="Export normals")
-
+            
             col = box.column()
             col.separator()
             col.operator("export.pbd_terrain_file", text="Export Terrain Javascript File", icon="EXPORT")

@@ -26,14 +26,14 @@ class ExportPropMaterial(bpy.types.PropertyGroup):
 class ExportPropObject(bpy.types.PropertyGroup):
 
     name = StringProperty(
-        default = "",
+        default = "blender_exported_terrain",
         description = "The name of the terrain set to the header type",
-        )
+    )
 
     terrain_segment_count = EnumProperty(
         description="The amount of world segments which will be created when the terrain is imported into the engine.",
         items=lambda s,c: get_terrain_factors("terrain_segment_count", s, c),
-        )
+    )
 
     draw_index = IntProperty(
         default=1,
@@ -139,9 +139,9 @@ class ExportProp(bpy.types.PropertyGroup):
         description = "The exporting scale of the object.",
     )
 
-    terrain_use_normals = BoolProperty(
-        default=False,
-        description="Export one normal per vertex and per face, to represent flat faces and sharp edges",
+    terrain_add_multires = BoolProperty(
+        default=True,
+        description="Also add a multi resolution modifier to the terrain plane after creation.",
     )
 
     terrain_use_mesh_modifiers = BoolProperty(

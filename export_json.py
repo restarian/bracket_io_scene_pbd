@@ -98,7 +98,7 @@ def write_terrain_file(context, filepath, object, depsgraph, scene,
                     resolution = round(sqrt( len(me.vertices) ))-1
                     quad_size = (largest_x-smallest_x)/resolution
                     segments = round(float(ob_for_convert.pbd_prop.terrain_segment_count))
-                    model_name = str(ob_for_convert.pbd_prop.terrain_name) or "blender_exported_terrain"
+                    model_name = str(ob_for_convert.pbd_prop.name) or "blender_exported_terrain"
                     resolution /= segments
                     fw("define([],function(){return{\"header\":{\"type\": \"terrain\", \"name\":\"%s\"," % (model_name))
                     fw("\"row\":%d,\"column\":%d,\"quad_size\":%.5f,\"resolution\":%d},\"height_map\":[" % (segments, segments, quad_size, resolution))
