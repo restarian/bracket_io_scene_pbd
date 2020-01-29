@@ -230,11 +230,6 @@ class ExportProp(bpy.types.PropertyGroup):
         description="Higher values will result in less white space and lesser size"
     )
 
-    json_as_widget = BoolProperty(
-        default=False,
-        description="Export the data using a zero value for the depth to conform to pbd standard",
-    )
-
     ignore_normals = BoolProperty(
         default=False,
         description="Do not include lighting normals in the exported obj file for any objects",
@@ -258,6 +253,15 @@ class ExportProp(bpy.types.PropertyGroup):
     json_ignore_meta = BoolProperty(
         default=True,
         description="Do not create the model meta data in the json file",
+    )
+
+    export_data_format = EnumProperty(
+        items= (
+            ('json', 'JSON file', 'A parsable JSON data object with a .json extention.'),
+            ('amd', 'AMD wrapped JS file', 'Wrapped with the asynchronouse module definition syntax with a .js extention.'),
+        ),
+        default = "amd",
+        description="The format of the outputed data file.",
     )
 
     json_force_texture = BoolProperty(

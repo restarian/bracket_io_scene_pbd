@@ -164,6 +164,7 @@ def exportJson(self, context):
         force_texture=c_ob.json_force_texture,
         compression_level=c_ob.json_compressed,
         addition_option=c_ob.json_additional_option,
+        data_format=c_ob.export_data_format,
    )
 
 class ExportFile(bpy.types.Operator, CustomExportHelper):

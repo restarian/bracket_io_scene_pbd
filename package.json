@@ -2,12 +2,15 @@
 	"name": "bracket_io_scene_pbd",
 	"version": "0.1.0",
 	"description": "A blender addon which operates a export script for use with the PBD engine",
-	"main": "lib/bracket_io_scene_pbd.js",
+	"main": "",
 	"scripts": {
 		"test": "mocha",
+		"equateVersion": "equateVersion",
 		"brace_document": "node ./bin/document.js",
-		"make_docs": "npm run brace_document --silent -- --navlink --link --link-dest ../Readme.md --link-path ../docs/synopsis.md -r -i docs_raw -b docs --force-title --title \"Bracket IO Scene PBD help pages\" --sort depth",
-		"make_docs_extra": "npm run make_docs --silent -- --specification --mocha"
+		"make_docs": "npm run brace_document --silent -- --navlink --link --link-dest ../Readme.md --link-path ../docs/synopsis.md -r -i docs --force-title --title \"Bracket IO Scene PBD help pages\" --sort depth --specification --mocha"
+	},
+	"bin": {
+		"equateVersion": "./bin/equateVersion.js"
 	},
 	"repository": {
 		"type": "git",
@@ -25,20 +28,16 @@
 	},
 	"license": "LGPLv3",
 	"homepage": "https://github.com/restarian/bracket_io_scene_pobd#Readme",
-	"dependencies": {
-	},
+	"dependencies": {},
 	"devDependencies": {
-		"brace_maybe": "^0.1.3",
-		"bracket_utils": "^0.3.1",
-		"chai": "^4.1.2",
-		"mocha": "^5.0.0",
-		"requirejs": "^2.3.5"
+		"bracket_print": "^0.10.4"
 	},
 	"optionalDependencies": {
 		"brace_document": "^1.1.0",
 		"brace_document_navlink": "^1.1.0",
 		"brace_document_specification": "^1.1.0",
-		"brace_document_link": "^1.1.0"
+		"brace_document_link": "^1.1.0",
+		"brace_document_mocha": "^1.1.0"
 	},
 	"technologies": [
 		{
@@ -50,11 +49,6 @@
 			"name": "Windows 10",
 			"description": "As the development operating environment",
 			"url": "https://www.microsoft.com/en-us/software-download/windows10"
-		},
-		{
-			"name": "Ubuntu on Windows",
-			"description": "For unit testing",
-			"url": "https://www.microsoft.com/en-us/store/p/ubuntu/9nblggh4msv6"
 		},
 		{
 			"name": "Git",
@@ -70,11 +64,6 @@
 			"name": "NPM",
 			"description": "For module storage",
 			"url": "https://npmjs.org"
-		},
-		{
-			"name": "Blender",
-			"description": "For logo design and art rendering",
-			"url": "https://blender.org"
 		}
 	]
 }

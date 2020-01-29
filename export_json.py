@@ -176,6 +176,7 @@ def make(context,
          force_texture=True,
          compression_level=2,
          addition_option="",
+         data_format='amd',
          ):
 
 
@@ -183,7 +184,7 @@ def make(context,
         ShowMessageBox("The obj to js conversion script path is not set in the addon preferences", "Cannot export json", 'ERROR')
         return False
 
-    param = ["node", script_path, "-t", str(precision), "-CavP", "-i", input_path, "-o", output_path]
+    param = ["node", script_path, "-t", str(precision), "-CvP", "-i", input_path, "-o", output_path]
 
     if ignore_normals:
         param.append("-z")
@@ -196,6 +197,9 @@ def make(context,
 
     if not ignore_meta:
         param.append("-m")
+
+    if data_format == 'amd':
+        param.append("-a")
 
     param.append("--compression-level")
     param.append(str(compression_level))

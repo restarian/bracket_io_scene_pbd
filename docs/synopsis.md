@@ -1,5 +1,5 @@
 ## Synopsis
-### Bracket_io_scene_pbd
+### Bracket Io Scene PBD
 
 | **The [Bracket Suite]** | **[Ubuntu on Windows]**   |
 |:-----------------------:|:-------------------------:|

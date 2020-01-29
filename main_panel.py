@@ -73,7 +73,7 @@ class TerrainTools(bpy.types.Panel):
 
             row = box.row()
             row.prop(c_ob, "terrain_use_mesh_modifiers", text="Apply mesh modifiers")
-            
+
             col = box.column()
             col.separator()
             col.operator("export.pbd_terrain_file", text="Export Terrain Javascript File", icon="EXPORT")
@@ -241,6 +241,9 @@ class ModelExport(bpy.types.Panel):
                 row = box.row()
                 row.prop(c_ob, "json_precision", text="Data precision")
                 row.prop(c_ob, "json_compressed", text="Compression level")
+
+                row = box.row()
+                row.prop(c_ob, "export_data_format", text="Exported data format")
 
                 col = box.column()
                 col.separator()
