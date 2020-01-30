@@ -29,10 +29,11 @@ fs.readFile("__init__.py", function(error, stdout) {
 
 
 	package.version = py_version
-	fs.writeFile(package_path, JSON.stringify(package), function(error) {
+	fs.writeFile(path.join(__dirname, "..", "package.json"), up.option({log_title: false, compression: 1, 
+	quote_qualifier: true, denote_quoting: "\"", style: false}).toString(package), function(error) {
 
 		if ( error )
-			up_err.log_true(error) && process.exit(7)
+			up_err.log_true("Write:", error) && process.exit(7)
 		else
 			up.log_undefined("Success") && process.exit(0)
 
