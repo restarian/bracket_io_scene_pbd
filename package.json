@@ -6,8 +6,7 @@
    "scripts": { 
       "test": "mocha", 
       "equateVersion": "equateVersion", 
-      "brace_document": "node ./bin/document.js", 
-      "make_docs": "npm run brace_document --silent -- --navlink --link --link-dest ../Readme.md --link-path ../docs/synopsis.md -r -i docs --force-title --title \"Bracket IO Scene PBD help pages\" --sort depth --specification --mocha"
+      "make_docs": "brace_document --navlink --link --link-dest ../Readme.md --link-path ../docs/synopsis.md -r -i docs --force-title --title \"Bracket IO Scene PBD help pages\" --sort depth --specification"
    }, 
    "bin": { 
       "equateVersion": "./bin/equateVersion.js"
@@ -36,8 +35,7 @@
       "brace_document": "^1.1.0", 
       "brace_document_navlink": "^1.1.0", 
       "brace_document_specification": "^1.1.0", 
-      "brace_document_link": "^1.1.0", 
-      "brace_document_mocha": "^1.1.0"
+      "brace_document_link": "^1.1.0"
    }, 
    "technologies": [
       { 

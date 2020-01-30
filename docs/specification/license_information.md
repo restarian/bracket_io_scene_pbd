@@ -1,23 +1,11 @@
 ## License Information
 
 ---
-### Bracket Print help pages
-* [Synopsis](https://github.com/restarian/bracket_print/blob/master/docs/synopsis.md)
-* Media and statistics
-  * [Benchmarking](https://github.com/restarian/bracket_print/blob/master/docs/media_and_statistics/benchmarking.md)
-  * [Screeenshots of output](https://github.com/restarian/bracket_print/blob/master/docs/media_and_statistics/screeenshots_of_output.md)
+### Bracket IO Scene PBD help pages
+* [Synopsis](https://github.com/restarian/bracket_io_scene_pbd/blob/master/docs/synopsis.md)
 * Specification
   * **License information**
-  * [Package information](https://github.com/restarian/bracket_print/blob/master/docs/specification/package_information.md)
-  * [Unit test output](https://github.com/restarian/bracket_print/blob/master/docs/specification/unit_test_output.md)
-* Usage and examples
-  * [As a_callback](https://github.com/restarian/bracket_print/blob/master/docs/usage_and_examples/as_a_callback.md)
-  * [As a_logger](https://github.com/restarian/bracket_print/blob/master/docs/usage_and_examples/as_a_logger.md)
-  * [As a_string](https://github.com/restarian/bracket_print/blob/master/docs/usage_and_examples/as_a_string.md)
-  * [How the level correlates to styling](https://github.com/restarian/bracket_print/blob/master/docs/usage_and_examples/how_the_level_correlates_to_styling.md)
-  * Advanced usage
-    * [Accessing the style map](https://github.com/restarian/bracket_print/blob/master/docs/usage_and_examples/advanced_usage/accessing_the_style_map.md)
-    * [Controlling the behaviour via option data](https://github.com/restarian/bracket_print/blob/master/docs/usage_and_examples/advanced_usage/controlling_the_behaviour_via_option_data.md)
+  * [Package information](https://github.com/restarian/bracket_io_scene_pbd/blob/master/docs/specification/package_information.md)
 
 ---
 

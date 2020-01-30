@@ -10,14 +10,14 @@ bl_info = {
     "category": "Import-Export"
 }
 
-from . import terrain_tools
-from . import addon_preference
-from . import addon_property
-from . import text_creation
-from . import object_creation
-from . import file_export
-from . import file_import
-from . import main_panel
+from .lib import terrain_tools
+from .lib import addon_preference
+from .lib import addon_property
+from .lib import text_creation
+from .lib import object_creation
+from .lib import file_export
+from .lib import file_import
+from .lib import main_panel
 
 def register():
     terrain_tools.register()
