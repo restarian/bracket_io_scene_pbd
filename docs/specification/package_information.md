@@ -3,7 +3,7 @@
 
 ----
 
-### 'Bracket
+### Bracket IO Scene PBD help pages
 * [Synopsis](https://github.com/restarian/bracket_io_scene_pbd/blob/master/docs/synopsis.md)
 * Specification
   * [License information](https://github.com/restarian/bracket_io_scene_pbd/blob/master/docs/specification/license_information.md)
@@ -26,7 +26,7 @@
 | ---- | ------ |
  | test | ```mocha``` |
  | equateVersion | ```equateVersion``` |
- | make_docs | ```brace_document --navlink --link --link-dest ../Readme.md --link-path ../docs/synopsis.md -r -i docs --force-title --title 'Bracket IO Scene PBD help pages' --sort depth --specification``` |
+ | make_docs | ```brace_document --navlink --link --link-dest ../Readme.md --link-path ../docs/synopsis.md -r -i docs --force-title --title "Bracket IO Scene PBD help pages" --sort depth --specification``` |
 
 **Keywords**: *markdown*, *documentation*, *platform*, *generation*
 

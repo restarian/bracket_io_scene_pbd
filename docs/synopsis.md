@@ -1,6 +1,6 @@
 
 ---
-### 'Bracket
+### Bracket IO Scene PBD help pages
 * **Synopsis**
 * Specification
   * [License information](https://github.com/restarian/bracket_io_scene_pbd/blob/master/docs/specification/license_information.md)
@@ -28,4 +28,4 @@
 
 ##### Additional authors: Campbell Barton, Bastien Montagne
 
-![Screenshot](https://raw.githubusercontent.com/restarian/bracket_io_scene_pbd/master/docs/images/scroll_animation.gif)
+![Screenshot](https://raw.githubusercontent.com/restarian/bracket_io_scene_pbd/master/docs/image/scroll_animation.gif)

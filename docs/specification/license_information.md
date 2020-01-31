@@ -1,7 +1,7 @@
 ## License Information
 
 ---
-### 'Bracket
+### Bracket IO Scene PBD help pages
 * [Synopsis](https://github.com/restarian/bracket_io_scene_pbd/blob/master/docs/synopsis.md)
 * Specification
   * **License information**
