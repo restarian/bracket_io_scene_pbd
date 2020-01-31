@@ -33,9 +33,10 @@
    }, 
    "optionalDependencies": { 
       "brace_document": "^1.1.0", 
+      "brace_document_link": "^1.1.0", 
+      "brace_document_mocha": "^1.1.0", 
       "brace_document_navlink": "^1.1.0", 
-      "brace_document_specification": "^1.1.0", 
-      "brace_document_link": "^1.1.0"
+      "brace_document_specification": "^1.1.0"
    }, 
    "technologies": [
       { 

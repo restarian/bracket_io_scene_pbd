@@ -3,7 +3,7 @@
 
 ----
 
-### Bracket IO Scene PBD help pages
+### 'Bracket
 * [Synopsis](https://github.com/restarian/bracket_io_scene_pbd/blob/master/docs/synopsis.md)
 * Specification
   * [License information](https://github.com/restarian/bracket_io_scene_pbd/blob/master/docs/specification/license_information.md)
@@ -18,7 +18,7 @@
 
 **Development dependencies**: [bracket_print](https://npmjs.org/package/bracket_print)
 
-**Optional Dependencies**: [brace_document](https://npmjs.org/package/brace_document) [brace_document_navlink](https://npmjs.org/package/brace_document_navlink) [brace_document_specification](https://npmjs.org/package/brace_document_specification) [brace_document_link](https://npmjs.org/package/brace_document_link)
+**Optional Dependencies**: [brace_document](https://npmjs.org/package/brace_document) [brace_document_link](https://npmjs.org/package/brace_document_link) [brace_document_mocha](https://npmjs.org/package/brace_document_mocha) [brace_document_navlink](https://npmjs.org/package/brace_document_navlink) [brace_document_specification](https://npmjs.org/package/brace_document_specification)
 
 **Package scripts**:
 
@@ -26,7 +26,7 @@
 | ---- | ------ |
  | test | ```mocha``` |
  | equateVersion | ```equateVersion``` |
- | make_docs | ```brace_document --navlink --link --link-dest ../Readme.md --link-path ../docs/synopsis.md -r -i docs --force-title --title "Bracket IO Scene PBD help pages" --sort depth --specification``` |
+ | make_docs | ```brace_document --navlink --link --link-dest ../Readme.md --link-path ../docs/synopsis.md -r -i docs --force-title --title 'Bracket IO Scene PBD help pages' --sort depth --specification``` |
 
 **Keywords**: *markdown*, *documentation*, *platform*, *generation*
 
