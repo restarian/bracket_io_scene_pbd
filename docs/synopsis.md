@@ -23,7 +23,7 @@
 **License**: LGPLv3
 **Author**: Robert Steckroth
 
-**Install this as you would any other blender addon. The addon is only verified for use with blender 2.79. This addon uses other works available within the source.**
+**Install this as you would any other blender addon. The addon is only verified for use with Blender ^2.80. This addon uses other works available within the source of blender.**
 
 ##### Additional authors: Campbell Barton, Bastien Montagne
 
